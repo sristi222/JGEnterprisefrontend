@@ -1,0 +1,151 @@
+.cart-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 2000; /* Higher than navbar */
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.cart-sidebar {
+  width: 350px;
+  max-width: 90%;
+  background-color: white;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.3s ease;
+  overflow-y: auto;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.cart-sidebar-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cart-sidebar-item {
+  display: flex;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.cart-sidebar-item-image {
+  width: 80px;
+  height: 80px;
+  margin-right: 15px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cart-sidebar-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cart-sidebar-item-details h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.cart-sidebar-item-details p {
+  margin: 0 0 5px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.cart-sidebar-summary {
+  margin-bottom: 20px;
+}
+
+.cart-sidebar-count,
+.cart-sidebar-total {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+.cart-sidebar-total {
+  font-weight: bold;
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+.cart-sidebar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.continue-shopping-btn,
+.view-cart-btn {
+  padding: 12px 0;
+  border-radius: 4px;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.continue-shopping-btn {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.continue-shopping-btn:hover {
+  background-color: #eee;
+}
+
+.view-cart-btn {
+  background-color: #c22126;
+  color: white;
+  border: none;
+}
+
+.view-cart-btn:hover {
+  background-color: #a51d21;
+}
+
+@media (max-width: 480px) {
+  .cart-sidebar {
+    width: 300px;
+  }
+
+  .cart-sidebar-item-image {
+    width: 60px;
+    height: 60px;
+  }
+
+  .cart-sidebar-item-details h4 {
+    font-size: 14px;
+  }
+}

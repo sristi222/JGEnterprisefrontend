@@ -1,0 +1,447 @@
+.checkout-page {
+  font-family: "Poppins", sans-serif;
+  background-color: #f9f9f9;
+  padding: 60px 0;
+}
+
+.checkout-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.checkout-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.checkout-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 5px 0;
+}
+
+.checkout-header h2 {
+  font-size: 16px;
+  color: #666;
+  font-weight: 400;
+  margin: 0;
+}
+
+.checkout-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+}
+
+.checkout-form-section {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 30px;
+}
+
+.checkout-form h3 {
+  font-size: 20px;
+  color: #333;
+  margin: 0 0 10px 0;
+  font-weight: 600;
+}
+
+.checkout-instruction {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  flex: 1;
+}
+
+.form-group.full-width {
+  width: 100%;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #c22126;
+  outline: none;
+}
+
+.form-group input.error {
+  border-color: #c22126;
+}
+
+.error-message {
+  color: #c22126;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.checkout-messaging-options {
+  margin-top: 30px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.checkout-messaging-options h3 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.checkout-messaging-options p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.messaging-checkout-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.whatsapp-checkout-btn,
+.viber-checkout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+}
+
+.whatsapp-checkout-btn {
+  background-color: #25d366;
+  color: white;
+}
+
+.whatsapp-checkout-btn:hover {
+  background-color: #128c7e;
+}
+
+.viber-checkout-btn {
+  background-color: #7360f2;
+  color: white;
+}
+
+.viber-checkout-btn:hover {
+  background-color: #5b48d1;
+}
+
+.checkout-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.back-to-cart-btn {
+  display: inline-block;
+  padding: 12px 20px;
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.back-to-cart-btn:hover {
+  background-color: #eee;
+}
+
+/* Summary Section */
+.checkout-summary {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  align-self: start;
+}
+
+.summary-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.summary-header h3 {
+  font-size: 18px;
+  color: #333;
+  margin: 0;
+  font-weight: 600;
+}
+
+.summary-content {
+  padding: 20px;
+}
+
+.summary-items {
+  margin-bottom: 20px;
+}
+
+.summary-items h4 {
+  font-size: 16px;
+  color: #333;
+  margin: 0 0 15px 0;
+  font-weight: 500;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+.summary-item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-item-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.summary-item-quantity {
+  font-size: 12px;
+  color: #999;
+}
+
+.summary-item-price {
+  font-weight: 500;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Viber Popup */
+.viber-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.viber-popup {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.viber-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.viber-popup-header h3 {
+  font-size: 18px;
+  color: #333;
+  margin: 0;
+  font-weight: 600;
+}
+
+.close-popup {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+}
+
+.viber-popup-content {
+  padding: 20px;
+}
+
+.viber-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.viber-instructions {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.viber-steps {
+  margin: 0 0 20px 20px;
+  padding: 0;
+}
+
+.viber-steps li {
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+.viber-message-preview {
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.viber-message-preview h4 {
+  font-size: 14px;
+  color: #333;
+  margin: 0 0 10px 0;
+  font-weight: 500;
+}
+
+.message-preview-content {
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 12px;
+  color: #666;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+.message-preview-content p {
+  margin: 0 0 5px 0;
+}
+
+.viber-popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+}
+
+.cancel-viber-btn,
+.continue-viber-btn {
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.cancel-viber-btn {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.cancel-viber-btn:hover {
+  background-color: #eee;
+}
+
+.continue-viber-btn {
+  background-color: #7360f2;
+  color: white;
+  border: none;
+}
+
+.continue-viber-btn:hover {
+  background-color: #5b48d1;
+}
+
+/* Loading Indicator */
+.checkout-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 18px;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .checkout-content {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .checkout-actions {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .back-to-cart-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .checkout-page {
+    padding: 40px 0;
+  }
+
+  .checkout-form-section,
+  .checkout-summary {
+    padding: 20px;
+  }
+
+  .viber-popup {
+    width: 95%;
+  }
+}

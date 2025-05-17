@@ -1,3 +1,4 @@
+// ProductsPage.jsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -12,12 +13,101 @@ function ProductsPage() {
   const [filteredProducts, setFilteredProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState("All")
+  const [selectedSubcategory, setSelectedSubcategory] = useState("All") // New state for subcategory
+  const [availableSubcategories, setAvailableSubcategories] = useState([]) // Available subcategories for selected category
   const [sortOption, setSortOption] = useState("default")
 
   // Get query parameters
   const queryParams = new URLSearchParams(location.search)
   const categoryParam = queryParams.get("category")
+  const subcategoryParam = queryParams.get("subcategory") // New parameter for subcategory
   const searchParam = queryParams.get("search")
+
+  // Category and subcategory mapping
+  const categorySubcategoryMap = {
+    "All": [{ value: "All", label: "All Subcategories" }],
+    "Fruits": [
+      { value: "All", label: "All Fruits" },
+      { value: "Fresh Fruits", label: "Fresh Fruits" },
+      { value: "Seasonal Fruits", label: "Seasonal Fruits" },
+      { value: "Exotic Fruits", label: "Exotic Fruits" },
+      { value: "Dried Fruits", label: "Dried Fruits" }
+    ],
+    "Vegetables": [
+      { value: "All", label: "All Vegetables" },
+      { value: "Fresh Vegetables", label: "Fresh Vegetables" },
+      { value: "Leafy Greens", label: "Leafy Greens" },
+      { value: "Organic Vegetables", label: "Organic Vegetables" },
+      { value: "Root Vegetables", label: "Root Vegetables" }
+    ],
+    "Snacks": [
+      { value: "All", label: "All Snacks" },
+      { value: "Chips", label: "Chips" },
+      { value: "Namkeen", label: "Namkeen" },
+      { value: "Popcorn", label: "Popcorn" },
+      { value: "Nuts", label: "Nuts" }
+    ],
+    "Dairy": [
+      { value: "All", label: "All Dairy" },
+      { value: "Milk", label: "Milk" },
+      { value: "Cheese", label: "Cheese" },
+      { value: "Yogurt", label: "Yogurt" },
+      { value: "Butter", label: "Butter" }
+    ],
+    "Bakery": [
+      { value: "All", label: "All Bakery" },
+      { value: "Breads", label: "Breads" },
+      { value: "Cakes", label: "Cakes" },
+      { value: "Pastries", label: "Pastries" },
+      { value: "Cookies", label: "Cookies" }
+    ],
+    "Beverages": [
+      { value: "All", label: "All Beverages" },
+      { value: "Tea", label: "Tea" },
+      { value: "Coffee", label: "Coffee" },
+      { value: "Juices", label: "Juices" },
+      { value: "Soft Drinks", label: "Soft Drinks" }
+    ],
+    "Dry-fruits": [
+      { value: "All", label: "All Dry Fruits" },
+      { value: "Nuts", label: "Nuts" },
+      { value: "Dried Berries", label: "Dried Berries" },
+      { value: "Mixed Dry Fruits", label: "Mixed Dry Fruits" }
+    ],
+    "Spices": [
+      { value: "All", label: "All Spices" },
+      { value: "Whole Spices", label: "Whole Spices" },
+      { value: "Ground Spices", label: "Ground Spices" },
+      { value: "Spice Blends", label: "Spice Blends" }
+    ],
+    "Grains": [
+      { value: "All", label: "All Grains" },
+      { value: "Rice", label: "Rice" },
+      { value: "Wheat", label: "Wheat" },
+      { value: "Millets", label: "Millets" },
+      { value: "Cereals", label: "Cereals" }
+    ],
+    "Chocolate": [
+      { value: "All", label: "All Chocolate" },
+      { value: "Dark Chocolate", label: "Dark Chocolate" },
+      { value: "Milk Chocolate", label: "Milk Chocolate" },
+      { value: "White Chocolate", label: "White Chocolate" }
+    ],
+    "Honey": [
+      { value: "All", label: "All Honey" },
+      { value: "Raw Honey", label: "Raw Honey" },
+      { value: "Organic Honey", label: "Organic Honey" },
+      { value: "Flavored Honey", label: "Flavored Honey" }
+    ]
+  };
+
+  const sortOptions = [
+    { value: "default", label: "Featured" },
+    { value: "price-low-high", label: "Price: Low to High" },
+    { value: "price-high-low", label: "Price: High to Low" },
+    { value: "name-a-z", label: "Name: A to Z" },
+    { value: "name-z-a", label: "Name: Z to A" },
+  ];
 
   useEffect(() => {
     // Fetch products (simulated)
@@ -36,6 +126,7 @@ function ProductsPage() {
           weight: "2 Pcs",
           sale: true,
           category: "fruits",
+          subcategory: "Seasonal Fruits", // Added subcategory
           color: "#8B7D39",
         },
         {
@@ -45,6 +136,7 @@ function ProductsPage() {
           price: 200,
           weight: "200 gm",
           category: "snacks",
+          subcategory: "Namkeen", // Added subcategory
           color: "#9C2759",
         },
         {
@@ -55,6 +147,7 @@ function ProductsPage() {
           price: 150,
           weight: "200 gm",
           category: "snacks",
+          subcategory: "Namkeen", // Added subcategory
           color: "#C44536",
         },
         {
@@ -65,6 +158,7 @@ function ProductsPage() {
           price: 200,
           weight: "260 gm",
           category: "snacks",
+          subcategory: "Namkeen", // Added subcategory
           color: "#1D5B9C",
         },
         {
@@ -75,6 +169,7 @@ function ProductsPage() {
           price: 350,
           weight: "1 kg",
           category: "vegetables",
+          subcategory: "Organic Vegetables", // Added subcategory
           color: "#2E8B57",
         },
         {
@@ -87,6 +182,7 @@ function ProductsPage() {
           weight: "250 gm",
           sale: true,
           category: "fruits",
+          subcategory: "Fresh Fruits", // Added subcategory
           color: "#C22126",
         },
         {
@@ -97,6 +193,7 @@ function ProductsPage() {
           price: 80,
           weight: "6 Pcs",
           category: "fruits",
+          subcategory: "Fresh Fruits", // Added subcategory
           color: "#FFD700",
         },
         {
@@ -109,6 +206,7 @@ function ProductsPage() {
           weight: "250 gm",
           sale: true,
           category: "dry-fruits",
+          subcategory: "Nuts", // Added subcategory
           color: "#8B4513",
         },
         {
@@ -119,6 +217,7 @@ function ProductsPage() {
           price: 350,
           weight: "500 gm",
           category: "honey",
+          subcategory: "Organic Honey", // Added subcategory
           color: "#FFD700",
         },
         {
@@ -129,6 +228,7 @@ function ProductsPage() {
           price: 220,
           weight: "2 Pcs",
           category: "fruits",
+          subcategory: "Fresh Fruits", // Added subcategory
           color: "#2E8B57",
         },
         {
@@ -139,6 +239,7 @@ function ProductsPage() {
           price: 180,
           weight: "1 kg",
           category: "grains",
+          subcategory: "Rice", // Added subcategory
           color: "#CD853F",
         },
         {
@@ -149,6 +250,7 @@ function ProductsPage() {
           price: 120,
           weight: "100 gm",
           category: "chocolate",
+          subcategory: "Dark Chocolate", // Added subcategory
           color: "#4B3621",
         },
         {
@@ -159,6 +261,7 @@ function ProductsPage() {
           price: 90,
           weight: "1 L",
           category: "dairy",
+          subcategory: "Milk", // Added subcategory
           color: "#F5F5F5",
         },
         {
@@ -169,6 +272,7 @@ function ProductsPage() {
           price: 60,
           weight: "400 gm",
           category: "bakery",
+          subcategory: "Breads", // Added subcategory
           color: "#D2691E",
         },
         {
@@ -179,6 +283,7 @@ function ProductsPage() {
           price: 150,
           weight: "25 bags",
           category: "beverages",
+          subcategory: "Tea", // Added subcategory
           color: "#2E8B57",
         },
         {
@@ -189,6 +294,7 @@ function ProductsPage() {
           price: 80,
           weight: "100 gm",
           category: "spices",
+          subcategory: "Ground Spices", // Added subcategory
           color: "#FFA500",
         },
       ]
@@ -200,15 +306,62 @@ function ProductsPage() {
     fetchProducts()
   }, [])
 
+  // Initialize filters from URL parameters
+  useEffect(() => {
+    if (categoryParam) {
+      const formattedCategory = categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1);
+      setSelectedCategory(formattedCategory);
+      
+      // Set available subcategories for this category
+      if (categorySubcategoryMap[formattedCategory]) {
+        setAvailableSubcategories(categorySubcategoryMap[formattedCategory]);
+      }
+      
+      // Set subcategory if present in URL
+      if (subcategoryParam) {
+        setSelectedSubcategory(subcategoryParam);
+      } else {
+        setSelectedSubcategory("All");
+      }
+    } else {
+      setSelectedCategory("All");
+      setSelectedSubcategory("All");
+      setAvailableSubcategories(categorySubcategoryMap["All"]);
+    }
+    
+    // Set sort option if present in URL
+    const sortParam = queryParams.get("sort");
+    if (sortParam) {
+      setSortOption(sortParam);
+    }
+  }, [location.search, categoryParam, subcategoryParam]);
+
+  // Update subcategories when category changes
+  useEffect(() => {
+    if (selectedCategory && categorySubcategoryMap[selectedCategory]) {
+      setAvailableSubcategories(categorySubcategoryMap[selectedCategory]);
+    } else {
+      setAvailableSubcategories(categorySubcategoryMap["All"]);
+    }
+  }, [selectedCategory]);
+
   // Filter and sort products
   useEffect(() => {
     if (products.length > 0) {
       let filtered = [...products]
 
-      // Apply category filter from URL parameter if present
-      if (categoryParam) {
-        setSelectedCategory(categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1))
-        filtered = filtered.filter((product) => product.category.toLowerCase() === categoryParam.toLowerCase())
+      // Apply category filter
+      if (selectedCategory !== "All") {
+        filtered = filtered.filter((product) => 
+          product.category.toLowerCase() === selectedCategory.toLowerCase()
+        );
+        
+        // Apply subcategory filter if not "All"
+        if (selectedSubcategory !== "All") {
+          filtered = filtered.filter((product) => 
+            product.subcategory === selectedSubcategory
+          );
+        }
       }
 
       // Apply search filter if present
@@ -216,13 +369,10 @@ function ProductsPage() {
         const searchTerm = searchParam.toLowerCase()
         filtered = filtered.filter(
           (product) =>
-            product.name.toLowerCase().includes(searchTerm) || product.category.toLowerCase().includes(searchTerm),
+            product.name.toLowerCase().includes(searchTerm) || 
+            product.category.toLowerCase().includes(searchTerm) ||
+            (product.subcategory && product.subcategory.toLowerCase().includes(searchTerm))
         )
-      }
-
-      // Apply category filter from dropdown if not "All"
-      if (selectedCategory !== "All" && !categoryParam) {
-        filtered = filtered.filter((product) => product.category.toLowerCase() === selectedCategory.toLowerCase())
       }
 
       // Apply sorting
@@ -246,34 +396,54 @@ function ProductsPage() {
 
       setFilteredProducts(filtered)
     }
-  }, [products, selectedCategory, sortOption, categoryParam, searchParam])
+  }, [products, selectedCategory, selectedSubcategory, sortOption, searchParam])
+
+  // Update URL with filters
+  const updateUrlWithFilters = (category, subcategory, sort) => {
+    const params = new URLSearchParams();
+    
+    if (category !== "All") {
+      params.set("category", category.toLowerCase());
+      
+      if (subcategory !== "All") {
+        params.set("subcategory", subcategory);
+      }
+    }
+    
+    if (sort !== "default") {
+      params.set("sort", sort);
+    }
+    
+    if (searchParam) {
+      params.set("search", searchParam);
+    }
+    
+    navigate({
+      pathname: location.pathname,
+      search: params.toString()
+    }, { replace: true });
+  };
 
   // Handle category change
   const handleCategoryChange = (e) => {
-    const category = e.target.value
-    setSelectedCategory(category)
+    const category = e.target.value;
+    setSelectedCategory(category);
+    setSelectedSubcategory("All"); // Reset subcategory when category changes
+    updateUrlWithFilters(category, "All", sortOption);
+  }
 
-    // Update URL when category changes
-    if (category === "All") {
-      // Remove category parameter but keep search if it exists
-      if (searchParam) {
-        navigate(`/products?search=${searchParam}`)
-      } else {
-        navigate("/products")
-      }
-    } else {
-      // Add category parameter and keep search if it exists
-      if (searchParam) {
-        navigate(`/products?category=${category.toLowerCase()}&search=${searchParam}`)
-      } else {
-        navigate(`/products?category=${category.toLowerCase()}`)
-      }
-    }
+  // Handle subcategory change
+  const handleSubcategoryChange = (e) => {
+    const subcategory = e.target.value;
+    setSelectedSubcategory(subcategory);
+    updateUrlWithFilters(selectedCategory, subcategory, sortOption);
   }
 
   // Handle sort change
   const handleSortChange = (e) => {
-    setSortOption(e.target.value)
+    const sort = e.target.value;
+    setSortOption(sort);
+    updateUrlWithFilters(selectedCategory, selectedSubcategory, sort);
   }
 
   if (loading) {
@@ -321,6 +491,25 @@ function ProductsPage() {
                 <option value="Honey">Honey</option>
               </select>
             </div>
+
+            {/* New Subcategory Filter */}
+            {selectedCategory !== "All" && (
+              <div className="filter-group">
+                <label htmlFor="subcategory-filter">Subcategory:</label>
+                <select
+                  id="subcategory-filter"
+                  value={selectedSubcategory}
+                  onChange={handleSubcategoryChange}
+                  className="filter-select"
+                >
+                  {availableSubcategories.map((subcategory) => (
+                    <option key={subcategory.value} value={subcategory.value}>
+                      {subcategory.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="filter-group">
               <label htmlFor="sort-filter">Sort By:</label>

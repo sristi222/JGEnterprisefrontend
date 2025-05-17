@@ -6,43 +6,44 @@ import { createContext, useContext, useState, useEffect } from "react"
 const CartContext = createContext()
 
 // Custom hook to use the cart context
-export function useCart() {
-  const context = useContext(CartContext)
-  if (!context) {
-    throw new Error("useCart must be used within a CartProvider")
-  }
-  return context
-}
+export const useCart = () => useContext(CartContext)
 
 // Cart provider component
-export function CartProvider({ children }) {
-  // Initialize cart from localStorage if available
+export const CartProvider = ({ children }) => {
+  // Initialize cart state from localStorage if available
   const [cart, setCart] = useState(() => {
-    if (typeof window !== "undefined") {
-      const savedCart = localStorage.getItem("cart")
-      return savedCart ? JSON.parse(savedCart) : []
-    }
-    return []
+    const savedCart = localStorage.getItem("grocery-cart")
+    return savedCart ? JSON.parse(savedCart) : []
   })
 
-  // Calculate total items in cart
-  const cartCount = cart.reduce((total, item) => total + item.quantity, 0)
+  // State for cart sidebar
+  const [showCartSidebar, setShowCartSidebar] = useState(false)
+  const [lastAddedItem, setLastAddedItem] = useState(null)
 
-  // Calculate total price
+  // Calculate cart total
   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0)
 
-  // Update localStorage whenever cart changes
+  // Calculate total number of items (quantities)
+  const cartCount = cart.reduce((count, item) => count + item.quantity, 0)
+
+  // Save cart to localStorage whenever it changes
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cart", JSON.stringify(cart))
-      console.log("Cart updated:", cart) // Debug log
-    }
+    localStorage.setItem("grocery-cart", JSON.stringify(cart))
   }, [cart])
+
+  // Auto-hide cart sidebar after 5 seconds
+  useEffect(() => {
+    let timer
+    if (showCartSidebar) {
+      timer = setTimeout(() => {
+        setShowCartSidebar(false)
+      }, 5000)
+    }
+    return () => clearTimeout(timer)
+  }, [showCartSidebar])
 
   // Add item to cart
   const addToCart = (product) => {
-    console.log("Adding to cart:", product) // Debug log
-
     setCart((prevCart) => {
       // Check if item already exists in cart
       const existingItemIndex = prevCart.findIndex((item) => item.id === product.id)
@@ -50,28 +51,50 @@ export function CartProvider({ children }) {
       if (existingItemIndex >= 0) {
         // Item exists, update quantity
         const updatedCart = [...prevCart]
-        updatedCart[existingItemIndex].quantity += product.quantity || 1
+        updatedCart[existingItemIndex].quantity += product.quantity
         return updatedCart
       } else {
         // Item doesn't exist, add new item
-        return [...prevCart, { ...product, quantity: product.quantity || 1 }]
+        return [...prevCart, product]
+      }
+    })
+
+    // Set last added item and show sidebar
+    setLastAddedItem(product)
+    setShowCartSidebar(true)
+  }
+
+  // Add item to cart silently (without showing sidebar) - for Buy Now functionality
+  const addToCartSilently = (product) => {
+    setCart((prevCart) => {
+      // Check if item already exists in cart
+      const existingItemIndex = prevCart.findIndex((item) => item.id === product.id)
+
+      if (existingItemIndex >= 0) {
+        // Item exists, update quantity
+        const updatedCart = [...prevCart]
+        updatedCart[existingItemIndex].quantity += product.quantity
+        return updatedCart
+      } else {
+        // Item doesn't exist, add new item
+        return [...prevCart, product]
       }
     })
   }
 
   // Update item quantity
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = (id, quantity) => {
     if (quantity <= 0) {
-      removeFromCart(productId)
+      removeFromCart(id)
       return
     }
 
-    setCart((prevCart) => prevCart.map((item) => (item.id === productId ? { ...item, quantity } : item)))
+    setCart((prevCart) => prevCart.map((item) => (item.id === id ? { ...item, quantity } : item)))
   }
 
   // Remove item from cart
-  const removeFromCart = (productId) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== productId))
+  const removeFromCart = (id) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== id))
   }
 
   // Clear cart
@@ -79,19 +102,26 @@ export function CartProvider({ children }) {
     setCart([])
   }
 
-  return (
-    <CartContext.Provider
-      value={{
-        cart,
-        cartCount,
-        cartTotal,
-        addToCart,
-        updateQuantity,
-        removeFromCart,
-        clearCart,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  )
+  // Close cart sidebar
+  const closeCartSidebar = () => {
+    setShowCartSidebar(false)
+  }
+
+  // Context value
+  const value = {
+    cart,
+    cartTotal,
+    cartCount,
+    addToCart,
+    addToCartSilently,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    showCartSidebar,
+    setShowCartSidebar,
+    lastAddedItem,
+    closeCartSidebar,
+  }
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }

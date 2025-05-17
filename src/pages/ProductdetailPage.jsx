@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import { useCart } from "../context/CartContext"
 import "./ProductDetailPage.css"
 
 function ProductDetailPage() {
   const { productId } = useParams()
-  const { cart, addToCart } = useCart()
+  const navigate = useNavigate()
+  const { cart, addToCart, addToCartSilently } = useCart()
   const [product, setProduct] = useState(null)
   const [quantity, setQuantity] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -181,6 +182,20 @@ function ProductDetailPage() {
     }
   }
 
+  // Updated Buy Now function to use addToCartSilently
+  const handleBuyNow = () => {
+    if (product) {
+      // Add the product to cart silently (without showing sidebar)
+      addToCartSilently({
+        ...product,
+        quantity,
+      })
+
+      // Navigate directly to checkout page
+      navigate("/checkout")
+    }
+  }
+
   // Check if product is in cart
   const isInCart = () => {
     return cart.some((item) => item.id === Number.parseInt(productId))
@@ -266,9 +281,15 @@ function ProductDetailPage() {
               </button>
             </div>
 
-            <button className="pd-add-cart-btn" onClick={handleAddToCart}>
-              Add to Shopping list
-            </button>
+            {/* Updated button group with Buy Now button */}
+            <div className="pd-button-group">
+              <button className="pd-add-cart-btn" onClick={handleAddToCart}>
+                Add to Shopping list
+              </button>
+              <button className="pd-buy-now-btn" onClick={handleBuyNow}>
+                Buy Now
+              </button>
+            </div>
 
             {isInCart() && (
               <div className="pd-in-cart">
@@ -311,12 +332,8 @@ function ProductDetailPage() {
             </div>
           </div>
 
-          {/* Right - Vertical Badge and Weight Badge */}
+          {/* Right - Only Weight Badge (removed vertical badge) */}
           <div className="pd-badges">
-            <div className="pd-vertical-badge" style={{ backgroundColor: product.color }}>
-              <div className="pd-vertical-text">BIKANO</div>
-              <div className="pd-vertical-text">Lajawab Mixture Bhujia</div>
-            </div>
             <div
               className="pd-weight-badge"
               style={{ backgroundColor: product.color === "#C44536" ? "#8B4513" : product.color }}
@@ -435,10 +452,6 @@ function ProductDetailPage() {
                 {product.sale && <div className="honey-sale-tag">SALE</div>}
                 <div className="honey-image-container">
                   <img src={product.image || "/placeholder.svg"} alt={product.name} className="honey-product-image" />
-                  <div className="honey-badge" style={{ backgroundColor: product.color }}>
-                    <div className="honey-vertical-text">QUALITY</div>
-                    <div className="honey-vertical-text">PREMIUM</div>
-                  </div>
                   <div className="honey-quantity-badge" style={{ backgroundColor: product.color }}>
                     {product.weight}
                   </div>
@@ -454,57 +467,42 @@ function ProductDetailPage() {
                   </div>
 
                   <div className="honey-product-actions">
-                    <div className="honey-quantity-selector">
-                      <span className="honey-qty-label">Qty</span>
+                    <div className="honey-button-group">
                       <button
-                        className="honey-qty-btn honey-decrease"
+                        className="honey-add-to-cart-btn"
                         onClick={(e) => {
                           e.stopPropagation()
-                          const currentQty = getQuantity(product.id)
-                          if (currentQty > 1) {
-                            setQuantities({
-                              ...quantities,
-                              [product.id]: currentQty - 1,
-                            })
-                          }
-                        }}
-                        disabled={getQuantity(product.id) <= 1}
-                      >
-                        -
-                      </button>
-                      <input type="text" className="honey-qty-input" value={getQuantity(product.id)} readOnly />
-                      <button
-                        className="honey-qty-btn honey-increase"
-                        onClick={(e) => {
-                          e.stopPropagation()
+                          const quantity = getQuantity(product.id)
+                          addToCart({
+                            ...product,
+                            quantity,
+                          })
                           setQuantities({
                             ...quantities,
-                            [product.id]: getQuantity(product.id) + 1,
+                            [product.id]: 1,
                           })
+                          alert(`${product.name} added to cart!`)
                         }}
                       >
-                        +
+                        ADD TO CART
+                      </button>
+                      <button
+                        className="honey-buy-now-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          const quantity = getQuantity(product.id)
+                          // Add this product to cart silently
+                          addToCartSilently({
+                            ...product,
+                            quantity,
+                          })
+                          // Then navigate to checkout
+                          navigate("/checkout")
+                        }}
+                      >
+                        BUY NOW
                       </button>
                     </div>
-
-                    <button
-                      className="honey-add-to-cart-btn"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        const quantity = getQuantity(product.id)
-                        addToCart({
-                          ...product,
-                          quantity,
-                        })
-                        setQuantities({
-                          ...quantities,
-                          [product.id]: 1,
-                        })
-                        alert(`${product.name} added to cart!`)
-                      }}
-                    >
-                      ADD TO SHOPPING LIST
-                    </button>
                   </div>
                 </div>
               </div>

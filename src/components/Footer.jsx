@@ -16,8 +16,6 @@ function Footer() {
               We provide premium quality groceries at competitive prices. Our mission is to deliver fresh products right
               to your doorstep with exceptional service.
             </p>
-           
-            
           </div>
 
           <div className="footer-column links-column">
@@ -133,8 +131,6 @@ function Footer() {
                 </div>
               </div>
             </div>
-
-           
           </div>
         </div>
       </div>

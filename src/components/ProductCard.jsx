@@ -1,54 +1,47 @@
 "use client"
 
-import { useState } from "react"
-import { useCart } from "../context/CartContext"
 import { useNavigate } from "react-router-dom"
+import { useCart } from "../context/CartContext"
 import "./ProductCard.css"
 
 function ProductCard({ product }) {
-  const [quantity, setQuantity] = useState(1)
-  const { addToCart } = useCart()
+  const { addToCart, addToCartSilently } = useCart()
   const navigate = useNavigate()
 
-  const decreaseQuantity = (e) => {
-    e.stopPropagation()
-    if (quantity > 1) {
-      setQuantity(quantity - 1)
-    }
-  }
-
-  const increaseQuantity = (e) => {
-    e.stopPropagation()
-    setQuantity(quantity + 1)
-  }
-
+  // Handle adding product to cart
   const handleAddToCart = (e) => {
-    e.stopPropagation()
-    console.log("Adding product to cart:", product) // Debug log
+    e.stopPropagation() // Prevent navigation when clicking the button
     addToCart({
       ...product,
-      quantity,
+      quantity: 1,
     })
-    // Reset quantity after adding to cart
-    setQuantity(1)
-    // Optional: Show a success message
-    alert(`${product.name} added to cart!`)
   }
 
+  // Navigate to product detail page
   const navigateToProduct = () => {
-    navigate(`/product/${product.id}`)
+    window.location.href = `/product/${product.id}`
+  }
+
+  // Handle Buy Now button click
+  const handleBuyNow = (e) => {
+    e.stopPropagation() // Prevent default navigation
+
+    // Add the product to cart silently
+    addToCartSilently({
+      ...product,
+      quantity: 1,
+    })
+
+    // Navigate to checkout
+    navigate("/checkout")
   }
 
   return (
-    <div className="honey-product-card" onClick={navigateToProduct} style={{ cursor: "pointer" }}>
+    <div className="honey-product-card" onClick={navigateToProduct}>
       {product.sale && <div className="honey-sale-tag">SALE</div>}
       <div className="honey-image-container">
         <img src={product.image || "/placeholder.svg"} alt={product.name} className="honey-product-image" />
-        <div className="honey-badge" style={{ backgroundColor: product.color }}>
-          <div className="honey-vertical-text">QUALITY</div>
-          <div className="honey-vertical-text">PREMIUM</div>
-        </div>
-        <div className="honey-quantity-badge" style={{ backgroundColor: product.color }}>
+        <div className="honey-quantity-badge" style={{ backgroundColor: product.color || "#333" }}>
           {product.weight}
         </div>
       </div>
@@ -63,20 +56,14 @@ function ProductCard({ product }) {
         </div>
 
         <div className="honey-product-actions">
-          <div className="honey-quantity-selector">
-            <span className="honey-qty-label">Qty</span>
-            <button className="honey-qty-btn honey-decrease" onClick={decreaseQuantity} disabled={quantity <= 1}>
-              -
+          <div className="honey-button-group">
+            <button className="honey-add-to-cart-btn" onClick={handleAddToCart}>
+              ADD TO CART
             </button>
-            <input type="text" className="honey-qty-input" value={quantity} readOnly />
-            <button className="honey-qty-btn honey-increase" onClick={increaseQuantity}>
-              +
+            <button className="honey-buy-now-btn" onClick={handleBuyNow}>
+              BUY NOW
             </button>
           </div>
-
-          <button className="honey-add-to-cart-btn" onClick={handleAddToCart}>
-            ADD TO SHOPPING LIST
-          </button>
         </div>
       </div>
     </div>

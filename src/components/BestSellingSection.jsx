@@ -7,7 +7,6 @@ import "./BestSellingSection.css"
 
 function BestSellingSection() {
   const { addToCart } = useCart()
-  const [quantities, setQuantities] = useState({})
   const scrollContainerRef = useRef(null)
 
   const [bestSellers, setBestSellers] = useState([
@@ -86,52 +85,24 @@ function BestSellingSection() {
     },
   ])
 
-  // Get quantity for a product (default to 1 if not set)
-  const getQuantity = (productId) => {
-    return quantities[productId] || 1
-  }
-
-  // Increase quantity for a product
-  const increaseQuantity = (productId, e) => {
-    e.stopPropagation() // Prevent navigation when clicking the button
-    setQuantities({
-      ...quantities,
-      [productId]: getQuantity(productId) + 1,
-    })
-  }
-
-  // Decrease quantity for a product
-  const decreaseQuantity = (productId, e) => {
-    e.stopPropagation() // Prevent navigation when clicking the button
-    if (getQuantity(productId) > 1) {
-      setQuantities({
-        ...quantities,
-        [productId]: getQuantity(productId) - 1,
-      })
-    }
-  }
-
   // Handle adding product to cart
   const handleAddToCart = (product, e) => {
     e.stopPropagation() // Prevent navigation when clicking the button
-    const quantity = getQuantity(product.id)
     addToCart({
       ...product,
-      quantity,
+      quantity: 1,
     })
-
-    // Reset quantity after adding to cart
-    setQuantities({
-      ...quantities,
-      [product.id]: 1,
-    })
-
-    // Show success message
-    alert(`${product.name} added to cart!`)
+    // Cart sidebar will be shown automatically via the context
   }
 
   // Navigate to product detail page
   const navigateToProduct = (productId) => {
+    window.location.href = `/product/${productId}`
+  }
+
+  // Handle Buy Now button click
+  const handleBuyNow = (productId, e) => {
+    e.stopPropagation() // Prevent default navigation
     window.location.href = `/product/${productId}`
   }
 
@@ -182,10 +153,6 @@ function BestSellingSection() {
                 {product.sale && <div className="honey-sale-tag">SALE</div>}
                 <div className="honey-image-container">
                   <img src={product.image || "/placeholder.svg"} alt={product.name} className="honey-product-image" />
-                  <div className="honey-badge" style={{ backgroundColor: product.color }}>
-                    <div className="honey-vertical-text">QUALITY</div>
-                    <div className="honey-vertical-text">PREMIUM</div>
-                  </div>
                   <div className="honey-quantity-badge" style={{ backgroundColor: product.color }}>
                     {product.weight}
                   </div>
@@ -201,24 +168,14 @@ function BestSellingSection() {
                   </div>
 
                   <div className="honey-product-actions">
-                    <div className="honey-quantity-selector">
-                      <span className="honey-qty-label">Qty</span>
-                      <button
-                        className="honey-qty-btn honey-decrease"
-                        onClick={(e) => decreaseQuantity(product.id, e)}
-                        disabled={getQuantity(product.id) <= 1}
-                      >
-                        -
+                    <div className="honey-button-group">
+                      <button className="honey-add-to-cart-btn" onClick={(e) => handleAddToCart(product, e)}>
+                        ADD TO CART
                       </button>
-                      <input type="text" className="honey-qty-input" value={getQuantity(product.id)} readOnly />
-                      <button className="honey-qty-btn honey-increase" onClick={(e) => increaseQuantity(product.id, e)}>
-                        +
+                      <button className="honey-buy-now-btn" onClick={(e) => handleBuyNow(product.id, e)}>
+                        BUY NOW
                       </button>
                     </div>
-
-                    <button className="honey-add-to-cart-btn" onClick={(e) => handleAddToCart(product, e)}>
-                      ADD TO SHOPPING LIST
-                    </button>
                   </div>
                 </div>
               </div>
