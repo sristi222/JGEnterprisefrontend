@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { useState, useEffect } from "react"
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
 import HeroSection from "./components/HeroSection"
@@ -14,6 +15,7 @@ import CartSidebar from "./components/CartSidebar"
 import "./App.css"
 import CheckoutPage from "./components/CheckoutPage"
 import CheckoutSuccess from "./components/CheckoutSuccess"
+
 // Admin imports
 import Dashboard from "./pages/Dashboard"
 import Products from "./pages/Products"
@@ -24,89 +26,110 @@ import AddProduct from "./pages/products/AddProduct"
 import EditProduct from "./pages/products/EditProduct"
 import AdminLayout from "./components/AdminLayout"
 
+// Optional fallback
+const NoMatch = () => (
+  <div style={{ padding: "2rem", textAlign: "center" }}>
+    <h2>404 - Page Not Found</h2>
+    <p>The page you're looking for doesn't exist.</p>
+  </div>
+)
+
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem("adminToken")
+  return token ? children : <Navigate to="/admin/login" />
+}
+
 function App() {
+  const [adminToken, setAdminToken] = useState(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken")
+    if (token) setAdminToken(token)
+  }, [])
+
   return (
     <BrowserRouter>
       <CartProvider>
         <div className="App">
           <CartSidebar />
+
           <Routes>
             {/* Admin Routes */}
             <Route
+              path="/admin/login"
+              element={
+                <Login onLogin={(token) => {
+                  localStorage.setItem("adminToken", token)
+                  setAdminToken(token)
+                }} />
+              }
+            />
+
+            <Route
               path="/admin"
               element={
-                <AdminLayout>
-                  <Dashboard />
-                </AdminLayout>
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Dashboard />
+                  </AdminLayout>
+                </ProtectedRoute>
               }
             />
-            <Route
-              path="/checkout"
-              element={
-                <>
-                  <Navbar />
-                  <CheckoutPage />
-                  <Footer />
-                </>
-              }
-            />
-            <Route
-              path="/checkout/success"
-              element={
-                <>
-                  <Navbar />
-                  <CheckoutSuccess />
-                  <Footer />
-                </>
-              }
-            />
-          
-            <Route
-              path="/admin/categories"
-              element={
-                <AdminLayout>
-                  <Categories />
-                </AdminLayout>
-              }
-            />
-            <Route
-              path="/admin/hero-slider"
-              element={
-                <AdminLayout>
-                  <HeroSlider />
-                </AdminLayout>
-              }
-            />
-            <Route path="/admin/login" element={<Login />} />
             <Route
               path="/admin/products"
               element={
-                <AdminLayout>
-                  <Products />
-                </AdminLayout>
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Products />
+                  </AdminLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/admin/products/add"
               element={
-                <AdminLayout>
-                  <AddProduct />
-                </AdminLayout>
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <AddProduct />
+                  </AdminLayout>
+                </ProtectedRoute>
               }
             />
             <Route
               path="/admin/products/edit/:id"
               element={
-                <AdminLayout>
-                  <EditProduct />
-                </AdminLayout>
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <EditProduct />
+                  </AdminLayout>
+                </ProtectedRoute>
               }
             />
-            
-          
-       
+            <Route
+              path="/admin/categories"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Categories />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/hero-slider"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <HeroSlider />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
 
-            {/* Customer Routes - With Navbar/Footer */}
+            {/* Optional: Support /dashboard as an alias */}
+            <Route path="/dashboard" element={<Navigate to="/admin" />} />
+
+            {/* Customer Routes */}
             <Route
               path="/"
               element={
@@ -169,6 +192,29 @@ function App() {
                 </>
               }
             />
+            <Route
+              path="/checkout"
+              element={
+                <>
+                  <Navbar />
+                  <CheckoutPage />
+                  <Footer />
+                </>
+              }
+            />
+            <Route
+              path="/checkout/success"
+              element={
+                <>
+                  <Navbar />
+                  <CheckoutSuccess />
+                  <Footer />
+                </>
+              }
+            />
+
+            {/* 404 Fallback */}
+            <Route path="*" element={<NoMatch />} />
           </Routes>
         </div>
       </CartProvider>

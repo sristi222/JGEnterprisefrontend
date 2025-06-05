@@ -21,6 +21,13 @@ function CartPage() {
     navigate("/checkout")
   }
 
+  const getImageUrl = (image) => {
+    if (!image) return "/placeholder.svg"
+    if (image.startsWith("http")) return image
+    if (image.startsWith("/uploads/")) return `http://localhost:5000${image}`
+    return `http://localhost:5000/uploads/${image.replace(/^.*[\\/]/, "")}`
+  }
+
   if (cart.length === 0) {
     return (
       <div className="cart-page">
@@ -76,22 +83,35 @@ function CartPage() {
 
             <div className="cart-items">
               {cart.map((item) => (
-                <div className="cart-item" key={item.id}>
-                  <button className="cart-remove-btn" onClick={() => removeFromCart(item.id)}>
+                <div className="cart-item" key={item.id || item._id}>
+                  <button className="cart-remove-btn" onClick={() => removeFromCart(item.id || item._id)}>
                     ×
                   </button>
                   <div className="cart-item-image">
-                    <img src={item.image || "/placeholder.svg"} alt={item.name} />
+                    <img
+                      src={getImageUrl(item.image || item.imageUrl)}
+                      alt={item.name}
+                      onError={(e) => {
+                        e.target.onerror = null
+                        e.target.src = "/placeholder.svg"
+                      }}
+                      style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                    />
                   </div>
                   <div className="cart-item-details">
                     <h4>{item.name}</h4>
                     <p className="cart-item-price">NRs. {item.price}</p>
                     <div className="cart-quantity-selector">
-                      <button onClick={() => updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
+                      <button
+                        onClick={() => updateQuantity(item.id || item._id, item.quantity - 1)}
+                        disabled={item.quantity <= 1}
+                      >
                         -
                       </button>
                       <span>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                      <button onClick={() => updateQuantity(item.id || item._id, item.quantity + 1)}>
+                        +
+                      </button>
                     </div>
                   </div>
                   <div className="cart-item-total">NRs. {item.price * item.quantity}</div>

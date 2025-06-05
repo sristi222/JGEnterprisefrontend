@@ -9,7 +9,15 @@ function CartSidebar() {
   const { cart, cartTotal, showCartSidebar, closeCartSidebar, lastAddedItem } = useCart()
   const sidebarRef = useRef(null)
 
-  // Close sidebar when clicking outside
+  // ✅ Normalize image path
+  const getImageUrl = (image) => {
+    if (!image) return "/placeholder.svg"
+    if (image.startsWith("http")) return image
+    if (image.startsWith("/uploads/")) return `http://localhost:5000${image}`
+    return `http://localhost:5000/uploads/${image.replace(/^.*[\\/]/, "")}`
+  }
+
+  // ✅ Close sidebar on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
@@ -30,25 +38,30 @@ function CartSidebar() {
     return null
   }
 
-  // Calculate total items
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0)
 
   return (
     <div className="cart-sidebar-overlay">
       <div className="cart-sidebar" ref={sidebarRef}>
         <div className="cart-sidebar-content">
-          {lastAddedItem && (
-            <div className="cart-sidebar-item">
-              <div className="cart-sidebar-item-image">
-                <img src={lastAddedItem.image || "/placeholder.svg"} alt={lastAddedItem.name} />
-              </div>
-              <div className="cart-sidebar-item-details">
-                <h4>{lastAddedItem.name}</h4>
-                <p>NRs. {lastAddedItem.price}</p>
-                <p>Quantity: {lastAddedItem.quantity}</p>
-              </div>
+          <div className="cart-sidebar-item">
+            <div className="cart-sidebar-item-image">
+              <img
+                src={getImageUrl(lastAddedItem.image || lastAddedItem.imageUrl)}
+                alt={lastAddedItem.name}
+                onError={(e) => {
+                  e.target.onerror = null
+                  e.target.src = "/placeholder.svg"
+                }}
+                style={{ objectFit: "cover", width: "100%", height: "100%" }}
+              />
             </div>
-          )}
+            <div className="cart-sidebar-item-details">
+              <h4>{lastAddedItem.name}</h4>
+              <p>NRs. {lastAddedItem.price}</p>
+              <p>Quantity: {lastAddedItem.quantity}</p>
+            </div>
+          </div>
 
           <div className="cart-sidebar-summary">
             <div className="cart-sidebar-count">

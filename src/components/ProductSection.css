@@ -1,8 +1,8 @@
-/* ProductSection.css - Updated to match BestSellingSection.css */
+/* ProductSection.css - Updated and Improved */
 .prod-section {
   padding: 60px 0;
   background-color: #f9f6f0;
-  margin-top: 20px; /* Added margin to create space from navbar */
+  margin-top: 20px;
 }
 
 .prod-container {
@@ -86,22 +86,22 @@
   right: -15px;
 }
 
-/* Make the grid scrollable */
+/* Scrollable Grid */
 .prod-grid {
   display: flex;
   overflow-x: auto;
   scroll-behavior: smooth;
   padding: 10px 5px;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   gap: 20px;
+  scroll-snap-type: x mandatory;
 }
 
 .prod-grid::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
-/* Product Card - Using honey- classes from BestSellingSection */
 .honey-product-card {
   background-color: white;
   border-radius: 8px;
@@ -113,8 +113,8 @@
   overflow: hidden;
   flex: 0 0 280px;
   width: 280px;
-  margin: 0;
-  height: 400px; /* Reduced height since we removed quantity selector */
+  height: 400px;
+  scroll-snap-align: start;
 }
 
 .honey-product-card:hover {
@@ -122,7 +122,7 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Sale Tag */
+/* SALE */
 .honey-sale-tag {
   position: absolute;
   top: 12px;
@@ -133,13 +133,26 @@
   font-weight: 600;
   padding: 4px 10px;
   border-radius: 4px;
-  z-index: 1;
+  z-index: 2;
 }
 
-/* Product Image */
+.honey-discount-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: #2e8b57;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 2;
+}
+
+/* Image */
 .honey-image-container {
   position: relative;
-  height: 180px; /* Fixed height for all images */
+  height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,7 +196,7 @@
   color: #333;
   margin: 0 0 8px 0;
   line-height: 1.4;
-  height: 44px; /* Fixed height for product name */
+  height: 44px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -202,18 +215,19 @@
   text-align: center;
 }
 
-/* Price */
+/* Price Display */
 .honey-product-price {
   display: flex;
   align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
   margin-bottom: 20px;
 }
 
 .honey-current-price {
   font-size: 18px;
   font-weight: 600;
-  color: #333;
-  margin-right: 10px;
+  color: #e53935;
 }
 
 .honey-original-price {
@@ -222,31 +236,34 @@
   text-decoration: line-through;
 }
 
-/* Actions */
+/* Button Section */
 .honey-product-actions {
-  margin-top: auto; /* Push to bottom of card */
+  margin-top: auto;
 }
 
-/* IMPROVED BUTTON STYLING */
 .honey-button-group {
   display: flex;
-  gap: 8px; /* Reduced gap between buttons */
-  flex-direction: row; /* Changed to horizontal layout */
+  gap: 8px;
+  flex-direction: row;
 }
 
-.honey-add-to-cart-btn {
-  flex: 1; /* Make buttons share available space equally */
-  background-color: #c22126;
-  color: white;
+.honey-add-to-cart-btn,
+.honey-buy-now-btn {
+  flex: 1;
   border: none;
   border-radius: 4px;
-  padding: 10px 0; /* Adjusted padding */
-  font-size: 12px; /* Slightly smaller font */
+  padding: 10px 0;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s;
   text-transform: uppercase;
-  white-space: nowrap; /* Prevent text wrapping */
+  white-space: nowrap;
+}
+
+.honey-add-to-cart-btn {
+  background-color: #c22126;
+  color: white;
 }
 
 .honey-add-to-cart-btn:hover {
@@ -255,23 +272,19 @@
 }
 
 .honey-buy-now-btn {
-  flex: 1; /* Make buttons share available space equally */
-  background-color: #2e8b57; /* Green color */
+  background-color: #2e8b57;
   color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 10px 0; /* Adjusted padding */
-  font-size: 12px; /* Slightly smaller font */
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-  text-transform: uppercase;
-  white-space: nowrap; /* Prevent text wrapping */
 }
 
 .honey-buy-now-btn:hover {
-  background-color: #267349; /* Darker green on hover */
+  background-color: #267349;
   transform: translateY(-2px);
+}
+
+.honey-add-to-cart-btn:focus,
+.honey-buy-now-btn:focus {
+  outline: 2px solid #555;
+  outline-offset: 2px;
 }
 
 /* Responsive */
@@ -325,12 +338,12 @@
   }
 
   .honey-button-group {
-    gap: 6px; /* Even smaller gap on mobile */
+    gap: 6px;
   }
 
   .honey-add-to-cart-btn,
   .honey-buy-now-btn {
-    font-size: 10px; /* Smaller font on mobile */
+    font-size: 10px;
     padding: 8px 0;
   }
 }

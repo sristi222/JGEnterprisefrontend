@@ -1,89 +1,70 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import axios from "axios"
 import "./HeroSection.css"
 
 function HeroSection() {
+  const [slides, setSlides] = useState([])
   const [currentSlide, setCurrentSlide] = useState(0)
   const slideInterval = useRef(null)
 
-  const categories = [
-    {
-      id: 1,
-      name: "Fresh Fruits",
-      image:
-        "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 2,
-      name: "Vegetables",
-      image:
-        "https://images.unsplash.com/photo-1566385101042-1a0aa0c1268c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 3,
-      name: "Bakery & Dairy",
-      image:
-        "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 4,
-      name: "Meat & Seafood",
-      image:
-        "https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 5,
-      name: "Packaged Foods",
-      image:
-        "https://images.unsplash.com/photo-1607349913338-fca6f7fc42d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      id: 6,
-      name: "Beverages",
-      image:
-        "https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80",
-    },
-  ]
-
-  // Auto slide functionality
   useEffect(() => {
-    const startSlideShow = () => {
-      slideInterval.current = setInterval(() => {
-        setCurrentSlide((prevSlide) => (prevSlide + 1) % categories.length)
-      }, 4000)
-    }
-
-    startSlideShow()
-
-    return () => {
-      if (slideInterval.current) {
-        clearInterval(slideInterval.current)
+    const fetchSlides = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/hero-slides")
+        if (res.data.success) {
+          const activeSlides = res.data.slides.filter((slide) => slide.active)
+          setSlides(activeSlides)
+        }
+      } catch (err) {
+        console.error("Failed to fetch hero slides", err)
       }
     }
-  }, [categories.length])
 
-  // Handle manual navigation
+    fetchSlides()
+  }, [])
+
+  useEffect(() => {
+    if (!slides.length) return
+
+    slideInterval.current = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length)
+    }, 4000)
+
+    return () => clearInterval(slideInterval.current)
+  }, [slides])
+
   const goToSlide = (index) => {
     setCurrentSlide(index)
-    if (slideInterval.current) {
-      clearInterval(slideInterval.current)
-      slideInterval.current = setInterval(() => {
-        setCurrentSlide((prevSlide) => (prevSlide + 1) % categories.length)
-      }, 4000)
-    }
+    clearInterval(slideInterval.current)
+    slideInterval.current = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length)
+    }, 4000)
+  }
+
+  if (!slides.length) {
+    return <div className="grocery-hero-section">Loading...</div>
   }
 
   return (
     <section className="grocery-hero-section">
       <div className="grocery-hero-slider">
-        <div className="grocery-slides-wrapper" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-          {categories.map((category) => (
-            <div className="grocery-slide" key={category.id}>
-              <img src={category.image || "/placeholder.svg"} alt={category.name} className="grocery-slide-image" />
+        <div
+          className="grocery-slides-wrapper"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {slides.map((slide) => (
+            <div className="grocery-slide" key={slide._id}>
+              <img
+                src={slide.imageUrl || "/placeholder.svg"}
+                alt={slide.title}
+                className="grocery-slide-image"
+              />
               <div className="grocery-slide-overlay"></div>
               <div className="grocery-slide-content">
-                <h2 className="grocery-slide-title">{category.name}</h2>
+                <h2 className="grocery-slide-title">{slide.title}</h2>
+                {slide.subtitle && <p className="grocery-slide-subtitle">{slide.subtitle}</p>}
                 <div className="grocery-store-name">Dinesh Laal's Shop</div>
               </div>
             </div>
@@ -91,7 +72,7 @@ function HeroSection() {
         </div>
 
         <div className="grocery-slider-dots">
-          {categories.map((_, index) => (
+          {slides.map((_, index) => (
             <button
               key={index}
               className={`grocery-slider-dot ${currentSlide === index ? "active" : ""}`}

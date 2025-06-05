@@ -1,12 +1,13 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import "./ProductForm.css"
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import "./ProductForm.css";
 
 function AddProduct() {
-  const navigate = useNavigate()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -22,35 +23,7 @@ function AddProduct() {
     displayInBestSelling: false,
     onSale: false,
     salePrice: "",
-  })
-
-  // Sample categories and subcategories
-  const categories = [
-    {
-      name: "Fruits",
-      subcategories: ["Fresh Fruits", "Seasonal Fruits", "Exotic Fruits", "Dried Fruits"],
-    },
-    {
-      name: "Vegetables",
-      subcategories: ["Fresh Vegetables", "Leafy Greens", "Organic Vegetables", "Root Vegetables"],
-    },
-    {
-      name: "Bakery",
-      subcategories: ["Breads", "Cakes", "Pastries", "Cookies"],
-    },
-    {
-      name: "Dairy & Eggs",
-      subcategories: ["Milk", "Cheese", "Yogurt", "Eggs", "Butter"],
-    },
-    {
-      name: "Meat",
-      subcategories: ["Chicken", "Mutton", "Beef", "Pork", "Sausages"],
-    },
-    {
-      name: "Seafood",
-      subcategories: ["Fish", "Prawns", "Crabs", "Other Seafood"],
-    },
-  ]
+  });
 
   const unitOptions = [
     { value: "kg", label: "Kilogram (kg)" },
@@ -63,46 +36,78 @@ function AddProduct() {
     { value: "liter", label: "Liter (L)" },
     { value: "ml", label: "Milliliter (ml)" },
     { value: "bunch", label: "Bunch" },
-  ]
+  ];
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch("/api/categories");
+        const data = await res.json();
+        setCategories(data);
+      } catch (err) {
+        console.error("Error loading categories", err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target
+    const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : value,
-    })
-  }
+    });
+  };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files[0];
     if (file) {
       setFormData({
         ...formData,
         image: file,
         imagePreview: URL.createObjectURL(file),
-      })
+      });
     }
-  }
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-
-    // Simulate API call to add product
-    setTimeout(() => {
-      console.log("Product added:", formData)
-      setIsSubmitting(false)
-      navigate("/admin/products")
-    }, 1500)
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    const formDataToSend = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === "image" && value) {
+        formDataToSend.append("image", value);
+      } else {
+        formDataToSend.append(key, value);
+      }
+    });
+    try {
+      const res = await fetch("http://localhost:5000/api/products", {
+        method: "POST",
+        body: formDataToSend,
+      });
+      if (res.ok) {
+        const result = await res.json();
+        console.log("✅ Product added:", result);
+        navigate("/admin/products");
+      } else {
+        const err = await res.json();
+        console.error("❌ Failed to add product:", err);
+        alert("Error: " + (err.error || "Failed to add product."));
+      }
+    } catch (error) {
+      console.error("❌ Error submitting form:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="product-form-container">
       <div className="form-header">
         <h2>Add New Product</h2>
-        <button className="back-button" onClick={() => navigate("/admin/products")}>
-          Back to Products
-        </button>
+        <button className="back-button" onClick={() => navigate("/admin/products")}>Back to Products</button>
       </div>
 
       <form onSubmit={handleSubmit} className="product-form">
@@ -115,13 +120,7 @@ function AddProduct() {
 
             <div className="form-group">
               <label htmlFor="description">Description</label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={4}
-              />
+              <textarea id="description" name="description" value={formData.description} onChange={handleChange} rows={4} />
             </div>
 
             <div className="form-row">
@@ -129,10 +128,8 @@ function AddProduct() {
                 <label htmlFor="category">Category*</label>
                 <select id="category" name="category" value={formData.category} onChange={handleChange} required>
                   <option value="">Select Category</option>
-                  {categories.map((category) => (
-                    <option key={category.name} value={category.name}>
-                      {category.name}
-                    </option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>{cat.name}</option>
                   ))}
                 </select>
               </div>
@@ -149,145 +146,54 @@ function AddProduct() {
                 >
                   <option value="">Select Subcategory</option>
                   {formData.category &&
-                    categories
-                      .find((cat) => cat.name === formData.category)
-                      ?.subcategories.map((subcat) => (
-                        <option key={subcat} value={subcat}>
-                          {subcat}
-                        </option>
-                      ))}
+                    categories.find((cat) => cat._id === formData.category)?.subcategories.map((subcat) => (
+                      <option key={subcat._id} value={subcat._id}>{subcat.name}</option>
+                    ))}
                 </select>
               </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="price">{formData.onSale ? "Regular Price*" : "Selling Price*"}</label>
-                <div className="price-input">
-                  <span className="currency-symbol">₹</span>
-                  <input
-                    type="number"
-                    id="price"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
+                <label htmlFor="price">Price*</label>
+                <input type="number" id="price" name="price" value={formData.price} onChange={handleChange} required />
               </div>
-
-              {formData.onSale && (
-                <div className="form-group">
-                  <label htmlFor="salePrice">Sale Price*</label>
-                  <div className="price-input">
-                    <span className="currency-symbol">₹</span>
-                    <input
-                      type="number"
-                      id="salePrice"
-                      name="salePrice"
-                      value={formData.salePrice}
-                      onChange={handleChange}
-                      min="0"
-                      step="0.01"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
-
-              {!formData.onSale && (
-                <div className="form-group">
-                  <label htmlFor="costPrice">Cost Price</label>
-                  <div className="price-input">
-                    <span className="currency-symbol">₹</span>
-                    <input
-                      type="number"
-                      id="costPrice"
-                      name="costPrice"
-                      value={formData.costPrice}
-                      onChange={handleChange}
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-              )}
+              <div className="form-group">
+                <label htmlFor="costPrice">Cost Price</label>
+                <input type="number" id="costPrice" name="costPrice" value={formData.costPrice} onChange={handleChange} />
+              </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="unit">Unit*</label>
                 <select id="unit" name="unit" value={formData.unit} onChange={handleChange} required>
-                  {unitOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
+                  {unitOptions.map((unit) => (
+                    <option key={unit.value} value={unit.value}>{unit.label}</option>
                   ))}
                 </select>
               </div>
 
               <div className="form-group">
-                <label htmlFor="stock">Stock Quantity*</label>
-                <input
-                  type="number"
-                  id="stock"
-                  name="stock"
-                  value={formData.stock}
-                  onChange={handleChange}
-                  min="0"
-                  required
-                />
+                <label htmlFor="stock">Stock*</label>
+                <input type="number" id="stock" name="stock" value={formData.stock} onChange={handleChange} required />
               </div>
             </div>
 
-            <div className="form-divider"></div>
-
-            <div className="form-section-title">Display Options</div>
-
-            <div className="form-group checkbox-group">
-              <div className="checkbox-container">
-                <input
-                  type="checkbox"
-                  id="displayInLatest"
-                  name="displayInLatest"
-                  checked={formData.displayInLatest}
-                  onChange={handleChange}
-                />
-                <label htmlFor="displayInLatest">Display in Latest Products section</label>
-              </div>
-
-              <div className="checkbox-container">
-                <input
-                  type="checkbox"
-                  id="displayInBestSelling"
-                  name="displayInBestSelling"
-                  checked={formData.displayInBestSelling}
-                  onChange={handleChange}
-                />
-                <label htmlFor="displayInBestSelling">Display in Best Selling Products section</label>
-              </div>
-            </div>
-
-            <div className="form-divider"></div>
-
-            <div className="form-section-title">Pricing Options</div>
-
-            <div className="form-group checkbox-group">
-              <div className="checkbox-container">
-                <input type="checkbox" id="onSale" name="onSale" checked={formData.onSale} onChange={handleChange} />
-                <label htmlFor="onSale">Mark as "On Sale" (displays sale tag)</label>
-              </div>
-
+            <div className="form-group">
+              <label htmlFor="displayInLatest">
+                <input type="checkbox" id="displayInLatest" name="displayInLatest" checked={formData.displayInLatest} onChange={handleChange} /> Display in Latest
+              </label>
+              <label htmlFor="displayInBestSelling">
+                <input type="checkbox" id="displayInBestSelling" name="displayInBestSelling" checked={formData.displayInBestSelling} onChange={handleChange} /> Display in Best Selling
+              </label>
+              <label htmlFor="onSale">
+                <input type="checkbox" id="onSale" name="onSale" checked={formData.onSale} onChange={handleChange} /> On Sale
+              </label>
               {formData.onSale && (
-                <div className="sale-info">
-                  <p>
-                    Discount:
-                    {formData.price && formData.salePrice
-                      ? ` ${Math.round((1 - Number.parseFloat(formData.salePrice) / Number.parseFloat(formData.price)) * 100)}% off`
-                      : " Set both prices to calculate discount"}
-                  </p>
+                <div className="form-group">
+                  <label htmlFor="salePrice">Sale Price*</label>
+                  <input type="number" id="salePrice" name="salePrice" value={formData.salePrice} onChange={handleChange} required />
                 </div>
               )}
             </div>
@@ -295,44 +201,22 @@ function AddProduct() {
 
           <div className="form-right">
             <div className="form-group">
-              <label>Product Image</label>
-              <div className="image-upload-container">
-                <div
-                  className="image-preview"
-                  style={{
-                    backgroundImage: formData.imagePreview ? `url(${formData.imagePreview})` : "none",
-                  }}
-                >
-                  {!formData.imagePreview && <span>No image selected</span>}
-                  {formData.imagePreview && formData.onSale && <div className="sale-tag-preview">SALE</div>}
-                </div>
-                <input
-                  type="file"
-                  id="image"
-                  name="image"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="image-upload-input"
-                />
-                <label htmlFor="image" className="image-upload-label">
-                  Choose Image
-                </label>
-              </div>
+              <label htmlFor="image">Product Image</label>
+              <input type="file" id="image" name="image" accept="image/*" onChange={handleImageChange} />
+              {formData.imagePreview && <img src={formData.imagePreview} alt="Preview" style={{ maxWidth: "100%", marginTop: "10px" }} />}
             </div>
           </div>
         </div>
 
         <div className="form-actions">
-          <button type="button" className="cancel-btn" onClick={() => navigate("/admin/products")}>
-            Cancel
-          </button>
+          <button type="button" className="cancel-btn" onClick={() => navigate("/admin/products")}>Cancel</button>
           <button type="submit" className="submit-btn" disabled={isSubmitting}>
             {isSubmitting ? "Adding Product..." : "Add Product"}
           </button>
         </div>
       </form>
     </div>
-  )
+  );
 }
 
-export default AddProduct
+export default AddProduct;
