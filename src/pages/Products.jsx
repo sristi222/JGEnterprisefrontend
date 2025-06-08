@@ -75,7 +75,7 @@ function Products() {
     return matchesSearch && matchesCategory
   })
 
-  // ✅ Cloudinary-safe image rendering
+  // Cloudinary-safe image rendering
   const getImageUrl = (url) => {
     if (!url) return "/placeholder.svg"
     return url
