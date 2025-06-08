@@ -8,7 +8,7 @@ const CartContext = createContext()
 // Custom hook to use the cart context
 export const useCart = () => useContext(CartContext)
 
-// Cart provider component
+// Cart provider component.
 export const CartProvider = ({ children }) => {
   // Initialize cart state from localStorage if available, with SSR check
   const [cart, setCart] = useState(() => {
