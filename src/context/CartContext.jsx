@@ -32,7 +32,7 @@ export const CartProvider = ({ children }) => {
   // Calculate total number of items (quantities)
   const cartCount = cart.reduce((count, item) => count + item.quantity, 0)
 
-  // Save cart to localStorage whenever it changes
+  // Save cart to localStorage whenever it change
   useEffect(() => {
     localStorage.setItem("grocery-cart", JSON.stringify(cart))
   }, [cart])
