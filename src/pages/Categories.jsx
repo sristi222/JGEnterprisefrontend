@@ -14,12 +14,14 @@ function Categories() {
   const [newCategory, setNewCategory] = useState({ name: "", description: "" })
   const [newSubcategory, setNewSubcategory] = useState({ name: "", categoryId: null })
   const [editCategory, setEditCategory] = useState({ id: null, name: "", description: "", status: "active" })
-  const [viewMode, setViewMode] = useState("table") // table or cards
+  const [viewMode, setViewMode] = useState("table")
   const [searchTerm, setSearchTerm] = useState("")
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("https://jgenterprisebackend-1.onrender.com/api/categories")
+      const res = await fetch(`${API_BASE_URL}/api/categories`)
       if (!res.ok) throw new Error("Failed to load categories")
       const data = await res.json()
       setCategories(data.sort((a, b) => a.name.localeCompare(b.name)))
@@ -43,7 +45,7 @@ function Categories() {
   const handleAddCategory = async (e) => {
     e.preventDefault()
     try {
-      const res = await fetch("https://jgenterprisebackend-1.onrender.com/api/categories", {
+      const res = await fetch(`${API_BASE_URL}/api/categories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newCategory),
@@ -60,15 +62,13 @@ function Categories() {
   const handleEditCategory = async (e) => {
     e.preventDefault()
     try {
-      const res = await fetch(`https://jgenterprisebackend-1.onrender.com/api/categories/${editCategory.id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/categories/${editCategory.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editCategory),
       })
       const updated = await res.json()
-      setCategories(
-        categories.map((c) => (c._id === updated._id ? updated : c)).sort((a, b) => a.name.localeCompare(b.name)),
-      )
+      setCategories(categories.map((c) => (c._id === updated._id ? updated : c)).sort((a, b) => a.name.localeCompare(b.name)))
       setShowEditForm(false)
     } catch (err) {
       console.error("Error editing category:", err)
@@ -78,15 +78,13 @@ function Categories() {
   const handleAddSubcategory = async (e) => {
     e.preventDefault()
     try {
-      const res = await fetch(`https://jgenterprisebackend-1.onrender.com/api/categories/${newSubcategory.categoryId}/subcategories`, {
+      const res = await fetch(`${API_BASE_URL}/api/categories/${newSubcategory.categoryId}/subcategories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: newSubcategory.name }),
       })
       const updated = await res.json()
-      setCategories(
-        categories.map((c) => (c._id === updated._id ? updated : c)).sort((a, b) => a.name.localeCompare(b.name)),
-      )
+      setCategories(categories.map((c) => (c._id === updated._id ? updated : c)).sort((a, b) => a.name.localeCompare(b.name)))
       setNewSubcategory({ name: "", categoryId: null })
       setShowSubcategoryForm(false)
     } catch (err) {
@@ -97,7 +95,7 @@ function Categories() {
   const handleDeleteCategory = async (id) => {
     if (!window.confirm("Are you sure you want to delete this category?")) return
     try {
-      await fetch(`https://jgenterprisebackend-1.onrender.com/api/categories/${id}`, { method: "DELETE" })
+      await fetch(`${API_BASE_URL}/api/categories/${id}`, { method: "DELETE" })
       setCategories(categories.filter((c) => c._id !== id))
     } catch (err) {
       console.error("Error deleting category:", err)
@@ -105,9 +103,9 @@ function Categories() {
   }
 
   const handleDeleteSubcategory = async (categoryId, subcategoryId, subcategoryName) => {
-    if (!window.confirm(`Delete subcategory "${subcategoryName}"?`)) return
+    if (!window.confirm(`Delete subcategory \"${subcategoryName}\"?`)) return
     try {
-      await fetch(`https://jgenterprisebackend-1.onrender.com/api/categories/${categoryId}/subcategories/${subcategoryId}`, { method: "DELETE" })
+      await fetch(`${API_BASE_URL}/api/categories/${categoryId}/subcategories/${subcategoryId}`, { method: "DELETE" })
       fetchCategories()
     } catch (err) {
       console.error("Error deleting subcategory:", err)
@@ -124,81 +122,10 @@ function Categories() {
     setShowEditForm(true)
   }
 
-  const filteredCategories = categories.filter(
-    (category) =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description?.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredCategories = categories.filter((category) =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    category.description?.toLowerCase().includes(searchTerm.toLowerCase())
   )
-
-  const CategoryCard = ({ category }) => (
-    <div className="category-card">
-      <div className="category-card-header">
-        <div className="category-card-title">
-          <h3>{category.name}</h3>
-          <span className={`status-badge ${category.status}`}>
-            {category.status === "active" ? "Active" : "Inactive"}
-          </span>
-        </div>
-        <div className="category-card-actions">
-          <button className="edit-btn" onClick={() => openEditModal(category)} title="Edit category">
-            <Edit size={16} />
-          </button>
-          <button className="delete-btn" onClick={() => handleDeleteCategory(category._id)} title="Delete category">
-            <Trash2 size={16} />
-          </button>
-        </div>
-      </div>
-
-      {category.description && (
-        <div className="category-card-description">
-          <p>{category.description}</p>
-        </div>
-      )}
-
-      <div className="category-card-subcategories">
-        <div className="subcategories-header">
-          <span className="subcategories-label">Subcategories ({(category.subcategories || []).length})</span>
-          <button
-            className="add-subcategory-btn-card"
-            onClick={() => {
-              setNewSubcategory({ name: "", categoryId: category._id })
-              setShowSubcategoryForm(true)
-            }}
-            title="Add subcategory"
-          >
-            <Plus size={14} />
-            <span>Add</span>
-          </button>
-        </div>
-        <div className="subcategories-list-card">
-          {(category.subcategories || []).map((subcategory) => (
-            <div className="subcategory-tag-card" key={subcategory._id}>
-              <span>{subcategory.name}</span>
-              <button
-                className="delete-subcategory-card"
-                onClick={() => handleDeleteSubcategory(category._id, subcategory._id, subcategory.name)}
-                title="Delete subcategory"
-              >
-                <X size={12} />
-              </button>
-            </div>
-          ))}
-          {(category.subcategories || []).length === 0 && <p className="no-subcategories">No subcategories yet</p>}
-        </div>
-      </div>
-    </div>
-  )
-
-  if (loading) {
-    return (
-      <div className="categories-container">
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading categories...</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="categories-container">
