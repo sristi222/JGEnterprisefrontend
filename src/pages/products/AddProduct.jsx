@@ -42,7 +42,7 @@ function AddProduct() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/categories")
+        const res = await fetch("https://jgenterprisebackend-1.onrender.com/api/categories")
         const data = await res.json()
         setCategories(Array.isArray(data) ? data : data.categories || [])
       } catch (err) {
@@ -113,7 +113,7 @@ function AddProduct() {
       }
     })
     try {
-      const res = await fetch("http://localhost:5000/api/products", {
+      const res = await fetch("https://jgenterprisebackend-1.onrender.com/api/products", {
         method: "POST",
         body: formDataToSend,
       })
