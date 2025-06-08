@@ -59,7 +59,7 @@ function EditProduct() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/products/${id}`)
+        const res = await fetch(`https://jgenterprisebackend-1.onrender.com/api/products/${id}`)
         const data = await res.json()
         if (res.ok) {
           setFormData({
@@ -147,7 +147,7 @@ function EditProduct() {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+      const res = await fetch(`https://jgenterprisebackend-1.onrender.com/api/products/${id}`, {
         method: "PUT",
         body: formDataToSend,
       })
