@@ -2,27 +2,40 @@
 
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import "./Navbar.css"
 import { useCart } from "../context/CartContext"
+import { MenuIcon, XIcon, SearchIcon, PhoneIcon, ShoppingCartIcon } from "lucide-react" // Import Lucide icons
+import "./Navbar.css"
 
 function Navbar() {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState("")
   const { cartCount } = useCart()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [userName, setUserName] = useState("User")
-  const [showUserMenu, setShowUserMenu] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false) // State for mobile menu
   const [availableCategories, setAvailableCategories] = useState([])
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("/api/categories")
-        const data = await res.json()
+        // Make a real API call to fetch categories
+        const response = await fetch("http://localhost:5000/api/categories")
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories")
+        }
+        const data = await response.json()
         const formatted = data.map((cat) => ({ id: cat._id, name: cat.name }))
         setAvailableCategories(formatted)
       } catch (err) {
         console.error("Failed to load categories", err)
+        // Fallback to some default categories if the API call fails
+        const fallbackCategories = [
+          { _id: "cat1", name: "Fruits" },
+          { _id: "cat2", name: "Vegetables" },
+          { _id: "cat3", name: "Dairy & Eggs" },
+          { _id: "cat4", name: "Meat & Seafood" },
+          { _id: "cat5", name: "Bakery" },
+        ]
+        const formatted = fallbackCategories.map((cat) => ({ id: cat._id, name: cat.name }))
+        setAvailableCategories(formatted)
       }
     }
     fetchCategories()
@@ -32,31 +45,30 @@ function Navbar() {
     e.preventDefault()
     if (searchQuery.trim()) {
       navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`)
+      setIsMobileMenuOpen(false) // Close mobile menu on search
     }
   }
 
-  const toggleUserMenu = () => {
-    setShowUserMenu(!showUserMenu)
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen((prev) => !prev)
   }
 
-  const handleLogout = () => {
-    setIsLoggedIn(false)
-    setUserName("User")
-    setShowUserMenu(false)
-    navigate("/")
+  const handleNavLinkClick = () => {
+    window.scrollTo(0, 0)
+    setIsMobileMenuOpen(false) // Close mobile menu when a link is clicked
   }
 
   return (
     <header className="grocery-navbar">
       <div className="grocery-main-navbar">
         <div className="grocery-container">
-          <Link to="/" className="grocery-logo" onClick={() => window.scrollTo(0, 0)}>
+          <Link to="/" className="grocery-logo" onClick={handleNavLinkClick}>
             <div className="grocery-logo-text">Dinesh Laal's Shop</div>
           </Link>
 
           <div className="grocery-search-container">
             <form onSubmit={handleSearch} className="grocery-search-bar">
-              <div className="grocery-search-icon"></div>
+              <SearchIcon className="grocery-search-icon" size={18} />
               <input
                 type="text"
                 placeholder="Search products..."
@@ -68,38 +80,79 @@ function Navbar() {
           </div>
 
           <div className="grocery-nav-actions">
-            <Link to="/contact" className="grocery-nav-link" onClick={() => window.scrollTo(0, 0)}>
+            {/* Desktop Nav Links */}
+            <Link to="/about" className="grocery-nav-link desktop-only" onClick={handleNavLinkClick}>
+              About Us
+            </Link>
+            <Link to="/contact" className="grocery-nav-link desktop-only" onClick={handleNavLinkClick}>
               Contact Us
             </Link>
 
-            <div className="grocery-order-section">
-              <div className="grocery-phone-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                </svg>
-              </div>
+            <div className="grocery-order-section desktop-only">
+              <PhoneIcon size={20} className="grocery-phone-icon" />
+              <div className="grocery-order-text">
+    <div className="grocery-order-label">ORDER AT</div>
+    <a href="tel:+977 9841241832" className="grocery-order-number">+977 9841241832</a>
+  </div>
+</div>
+
+            {/* Remove the entire user menu conditional block and replace with just: */}
+            <Link to="/cart" className="grocery-cart-icon" onClick={handleNavLinkClick}>
+              <ShoppingCartIcon size={24} />
+              <span className="grocery-cart-count">{cartCount}</span>
+            </Link>
+
+            {/* Mobile Menu Toggle */}
+            <button className="grocery-menu-toggle mobile-only" onClick={toggleMobileMenu}>
+              {isMobileMenuOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="grocery-mobile-menu mobile-only">
+          <div className="grocery-mobile-menu-header">
+            <div className="grocery-logo-text">Dinesh Laal's Shop</div>
+            <button onClick={toggleMobileMenu}>
+              <XIcon size={24} />
+            </button>
+          </div>
+          <div className="grocery-mobile-search-container">
+            <form onSubmit={handleSearch} className="grocery-search-bar">
+              <SearchIcon className="grocery-search-icon" size={18} />
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="grocery-search-input"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </form>
+          </div>
+          <nav className="grocery-mobile-nav-links">
+            <Link to="/about" className="grocery-mobile-nav-link" onClick={handleNavLinkClick}>
+              About Us
+            </Link>
+            <Link to="/contact" className="grocery-mobile-nav-link" onClick={handleNavLinkClick}>
+              Contact Us
+            </Link>
+            <div className="grocery-order-section mobile-only-phone">
+              <PhoneIcon size={20} className="grocery-phone-icon" />
               <div className="grocery-order-text">
                 <div className="grocery-order-label">ORDER AT</div>
                 <div className="grocery-order-number">01-4511000</div>
               </div>
             </div>
-
-            <Link to="/cart" className="grocery-cart-icon" onClick={() => window.scrollTo(0, 0)}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-              </svg>
-              <span className="grocery-cart-count">{cartCount}</span>
-            </Link>
-          </div>
+          </nav>
         </div>
-      </div>
+      )}
 
       <div className="grocery-categories-nav">
         <div className="grocery-container">
           <nav className="grocery-categories-list">
-            <Link to="/products" className="grocery-category-item" onClick={() => window.scrollTo(0, 0)}>
+            <Link to="/products" className="grocery-category-item" onClick={handleNavLinkClick}>
               All Categories
             </Link>
             {availableCategories.map((category) => (
@@ -107,7 +160,7 @@ function Navbar() {
                 key={category.id}
                 to={`/products?category=${category.id}`}
                 className="grocery-category-item"
-                onClick={() => window.scrollTo(0, 0)}
+                onClick={handleNavLinkClick}
               >
                 {category.name}
               </Link>

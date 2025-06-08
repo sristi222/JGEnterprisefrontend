@@ -7,7 +7,7 @@
 .checkout-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 20px; /* Added horizontal padding for responsiveness */
 }
 
 .checkout-header {
@@ -31,15 +31,23 @@
 
 .checkout-content {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 1fr; /* Desktop: Form (2fr) then Summary (1fr) */
   gap: 30px;
 }
 
+/* Desktop Order: Form (first in HTML) naturally takes 2fr, Summary (second in HTML) takes 1fr */
 .checkout-form-section {
   background-color: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   padding: 30px;
+}
+
+.checkout-summary {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  align-self: start;
 }
 
 .checkout-form h3 {
@@ -125,7 +133,7 @@
 }
 
 .whatsapp-checkout-btn,
-.viber-checkout-btn {
+.sms-checkout-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -148,19 +156,19 @@
   background-color: #128c7e;
 }
 
-.viber-checkout-btn {
-  background-color: #7360f2;
+.sms-checkout-btn {
+  background-color: #6b7280;
   color: white;
 }
 
-.viber-checkout-btn:hover {
-  background-color: #5b48d1;
+.sms-checkout-btn:hover {
+  background-color: #4b5563;
 }
 
 .checkout-actions {
   margin-top: 30px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* Centered on desktop */
 }
 
 .back-to-cart-btn {
@@ -173,6 +181,7 @@
   text-decoration: none;
   font-weight: 500;
   transition: all 0.3s;
+  width: fit-content; /* Shrink to content width on desktop */
 }
 
 .back-to-cart-btn:hover {
@@ -180,13 +189,6 @@
 }
 
 /* Summary Section */
-.checkout-summary {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  align-self: start;
-}
-
 .summary-header {
   padding: 20px;
   border-bottom: 1px solid #eee;
@@ -260,145 +262,6 @@
   color: #333;
 }
 
-/* Viber Popup */
-.viber-popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.viber-popup {
-  background-color: white;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.viber-popup-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 20px;
-  border-bottom: 1px solid #eee;
-}
-
-.viber-popup-header h3 {
-  font-size: 18px;
-  color: #333;
-  margin: 0;
-  font-weight: 600;
-}
-
-.close-popup {
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #999;
-  cursor: pointer;
-}
-
-.viber-popup-content {
-  padding: 20px;
-}
-
-.viber-icon {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 15px;
-}
-
-.viber-instructions {
-  font-size: 16px;
-  color: #333;
-  margin-bottom: 15px;
-}
-
-.viber-steps {
-  margin: 0 0 20px 20px;
-  padding: 0;
-}
-
-.viber-steps li {
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #666;
-}
-
-.viber-message-preview {
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  padding: 15px;
-  margin-bottom: 20px;
-}
-
-.viber-message-preview h4 {
-  font-size: 14px;
-  color: #333;
-  margin: 0 0 10px 0;
-  font-weight: 500;
-}
-
-.message-preview-content {
-  max-height: 200px;
-  overflow-y: auto;
-  font-size: 12px;
-  color: #666;
-  font-family: monospace;
-  white-space: pre-wrap;
-}
-
-.message-preview-content p {
-  margin: 0 0 5px 0;
-}
-
-.viber-popup-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-  padding: 15px 20px;
-  border-top: 1px solid #eee;
-}
-
-.cancel-viber-btn,
-.continue-viber-btn {
-  padding: 10px 20px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.cancel-viber-btn {
-  background-color: #f5f5f5;
-  color: #333;
-  border: 1px solid #ddd;
-}
-
-.cancel-viber-btn:hover {
-  background-color: #eee;
-}
-
-.continue-viber-btn {
-  background-color: #7360f2;
-  color: white;
-  border: none;
-}
-
-.continue-viber-btn:hover {
-  background-color: #5b48d1;
-}
-
 /* Loading Indicator */
 .checkout-loading {
   display: flex;
@@ -412,21 +275,32 @@
 /* Responsive */
 @media (max-width: 768px) {
   .checkout-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Stack form and summary vertically */
+  }
+
+  /* Mobile Order: Summary at top, then Form */
+  .checkout-summary {
+    order: -1; /* Places summary at the top */
+    margin-bottom: 20px; /* Add space below summary when stacked */
+  }
+
+  .checkout-form-section {
+    order: unset; /* Form remains in its natural order (after summary due to order:-1) */
   }
 
   .form-row {
-    flex-direction: column;
+    flex-direction: column; /* Stack form fields vertically */
     gap: 15px;
   }
 
   .checkout-actions {
-    flex-direction: column;
+    flex-direction: column; /* Stack action buttons vertically */
     gap: 15px;
+    align-items: center; /* Center items horizontally when stacked */
   }
 
   .back-to-cart-btn {
-    width: 100%;
+    width: 100%; /* Make button full width on mobile */
     text-align: center;
   }
 }
@@ -436,12 +310,45 @@
     padding: 40px 0;
   }
 
-  .checkout-form-section,
-  .checkout-summary {
-    padding: 20px;
+  .checkout-container {
+    padding: 0 15px; /* Reduce horizontal padding further */
   }
 
-  .viber-popup {
-    width: 95%;
+  .checkout-form-section,
+  .checkout-summary {
+    padding: 20px; /* Reduce padding inside sections */
+  }
+
+  .checkout-header h1 {
+    font-size: 24px; /* Smaller header on very small screens */
+  }
+
+  .checkout-header h2 {
+    font-size: 14px;
+  }
+
+  .checkout-form h3,
+  .checkout-messaging-options h3,
+  .summary-header h3 {
+    font-size: 18px; /* Adjust section titles */
+  }
+
+  .checkout-instruction,
+  .checkout-messaging-options p,
+  .form-group label,
+  .form-group input,
+  .summary-item,
+  .summary-row {
+    font-size: 13px; /* Smaller text for better fit */
+  }
+
+  .whatsapp-checkout-btn,
+  .sms-checkout-btn {
+    padding: 12px; /* Smaller button padding */
+    font-size: 14px; /* Smaller button font */
+  }
+
+  .summary-total {
+    font-size: 16px; /* Smaller total price */
   }
 }

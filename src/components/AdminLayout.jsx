@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
 import "./AdminLayout.css"
+import { Package, Home, Folder, ImageIcon, LogOut, X, Menu } from "lucide-react" // Import Lucide React icons
 
 function AdminLayout({ children }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -38,50 +39,52 @@ function AdminLayout({ children }) {
     <div className="admin-layout">
       {/* Mobile Menu Toggle */}
       <button className="mobile-toggle" onClick={toggleMobileMenu}>
-        {isMobileMenuOpen ? "✕" : "☰"}
+        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />} {/* Lucide icons for toggle */}
       </button>
 
       {/* Sidebar */}
       <div className={`admin-sidebar ${isMobileMenuOpen ? "open" : ""}`}>
         <div className="admin-sidebar-header">
           <Link to="/admin" className="admin-logo">
-            <span className="icon">📦</span>
+            <Package size={24} className="icon" /> {/* Lucide Package icon */}
             <span>Admin Panel</span>
           </Link>
         </div>
         <div className="admin-sidebar-content">
           <Link to="/admin" className={`admin-nav-item ${location.pathname === "/admin" ? "active" : ""}`}>
-            <span className="icon">🏠</span>
+            <Home size={20} className="icon" /> {/* Lucide Home icon */}
             <span>Dashboard</span>
           </Link>
           <Link
             to="/admin/products"
             className={`admin-nav-item ${location.pathname.includes("/admin/products") ? "active" : ""}`}
           >
-            <span className="icon">📦</span>
+            <Package size={20} className="icon" /> {/* Lucide Package icon */}
             <span>Products</span>
           </Link>
           <Link
             to="/admin/categories"
             className={`admin-nav-item ${location.pathname.includes("/admin/categories") ? "active" : ""}`}
           >
-            <span className="icon">📁</span>
+            <Folder size={20} className="icon" /> {/* Lucide Folder icon */}
             <span>Categories</span>
           </Link>
           <Link
             to="/admin/hero-slider"
             className={`admin-nav-item ${location.pathname.includes("/admin/hero-slider") ? "active" : ""}`}
           >
-            <span className="icon">🖼️</span>
+            <ImageIcon size={20} className="icon" /> {/* Lucide ImageIcon */}
             <span>Hero Slider</span>
           </Link>
-        </div>
-        <div className="admin-sidebar-footer">
+
+          {/* Moved "Back to Site" button here */}
           <Link to="/" className="admin-logout-btn">
-            <span className="icon">🚪</span>
+            <LogOut size={20} className="icon" /> {/* Lucide LogOut icon */}
             <span>Back to Site</span>
           </Link>
         </div>
+        {/* The footer can remain for other potential content, or be removed if empty */}
+        <div className="admin-sidebar-footer">{/* Any other footer content can go here */}</div>
       </div>
 
       {/* Main Content */}

@@ -13,7 +13,6 @@ function HeroSlider() {
     subtitle: "",
     image: null,
     imagePreview: null,
-    link: "",
     active: true,
   })
   const [editingSlide, setEditingSlide] = useState(null)
@@ -66,7 +65,6 @@ function HeroSlider() {
       if (res.data.success) {
         setSlides((prev) => [...prev, res.data.slide])
         setShowAddForm(false)
-        setNewSlide({ title: "", subtitle: "", image: null, imagePreview: null, link: "", active: true })
       }
     } catch (err) {
       console.error("Failed to add slide:", err)
@@ -107,7 +105,6 @@ function HeroSlider() {
     const formData = new FormData()
     formData.append("title", target.title)
     formData.append("subtitle", target.subtitle || "")
-    formData.append("link", target.link || "")
     formData.append("active", (!target.active).toString())
     try {
       await axios.put(`http://localhost:5000/api/hero-slides/${id}`, formData, {
@@ -141,7 +138,9 @@ function HeroSlider() {
     <div className="hero-slider-page">
       <div className="hero-slider-header">
         <h2>Hero Slider Management</h2>
-        <button className="add-slide-btn" onClick={() => setShowAddForm(true)}>Add New Slide</button>
+        <button className="add-slide-btn" onClick={() => setShowAddForm(true)}>
+          Add New Slide
+        </button>
       </div>
 
       {(showAddForm || editingSlide) && (
@@ -149,31 +148,73 @@ function HeroSlider() {
           <div className="modal-content">
             <div className="modal-header">
               <h3>{editingSlide ? "Edit Slide" : "Add New Slide"}</h3>
-              <button className="close-modal" onClick={() => { setShowAddForm(false); setEditingSlide(null) }}>×</button>
+              <button
+                className="close-modal"
+                onClick={() => {
+                  setShowAddForm(false)
+                  setEditingSlide(null)
+                }}
+              >
+                ×
+              </button>
             </div>
             <form onSubmit={editingSlide ? handleUpdateSlide : handleAddSlide}>
               <div className="form-group">
                 <label>Title*</label>
-                <input type="text" name="title" required value={editingSlide ? editingSlide.title : newSlide.title} onChange={handleInputChange} />
+                <input
+                  type="text"
+                  name="title"
+                  required
+                  value={editingSlide ? editingSlide.title : newSlide.title}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="form-group">
                 <label>Subtitle</label>
-                <input type="text" name="subtitle" value={editingSlide ? editingSlide.subtitle : newSlide.subtitle} onChange={handleInputChange} />
-              </div>
-              <div className="form-group">
-                <label>Link</label>
-                <input type="text" name="link" value={editingSlide ? editingSlide.link : newSlide.link} onChange={handleInputChange} />
+                <input
+                  type="text"
+                  name="subtitle"
+                  value={editingSlide ? editingSlide.subtitle : newSlide.subtitle}
+                  onChange={handleInputChange}
+                />
               </div>
               <div className="form-group">
                 <label>Image*</label>
-                <input type="file" name="image" accept="image/*" onChange={handleImageChange} required={!editingSlide} />
-                <div className="image-preview" style={{ backgroundImage: `url(${editingSlide ? editingSlide.imagePreview || editingSlide.imageUrl : newSlide.imagePreview})` }} />
+                <input
+                  type="file"
+                  name="image"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  required={!editingSlide}
+                />
+                <div
+                  className="image-preview"
+                  style={{
+                    backgroundImage: `url(${editingSlide ? editingSlide.imagePreview || editingSlide.imageUrl : newSlide.imagePreview})`,
+                  }}
+                />
               </div>
               <div className="form-group checkbox-group">
-                <label><input type="checkbox" name="active" checked={editingSlide ? editingSlide.active : newSlide.active} onChange={handleInputChange} /> Active</label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="active"
+                    checked={editingSlide ? editingSlide.active : newSlide.active}
+                    onChange={handleInputChange}
+                  />{" "}
+                  Active
+                </label>
               </div>
               <div className="form-actions">
-                <button type="button" onClick={() => { setShowAddForm(false); setEditingSlide(null) }}>Cancel</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddForm(false)
+                    setEditingSlide(null)
+                  }}
+                >
+                  Cancel
+                </button>
                 <button type="submit">{editingSlide ? "Update" : "Add"} Slide</button>
               </div>
             </form>
@@ -182,24 +223,29 @@ function HeroSlider() {
       )}
 
       <div className="slides-container">
-        {slides.map((s) => (
-          <div key={s._id} className={`slide-card ${!s.active ? "inactive" : ""}`}>
-            <img src={s.imageUrl} alt={s.title} />
-            <div className="slide-details">
-              <h3>{s.title}</h3>
-              <p>{s.subtitle}</p>
-              <p><strong>Link:</strong> {s.link}</p>
-              <p><strong>Order:</strong> {s.order}</p>
+        {slides.length === 0 ? (
+          <div className="no-slides">No slides found. Add your first slide!</div>
+        ) : (
+          slides.map((s) => (
+            <div key={s._id} className={`slide-card ${!s.active ? "inactive" : ""}`}>
+              <img src={s.imageUrl || "/placeholder.svg"} alt={s.title} />
+              <div className="slide-details">
+                <h3>{s.title}</h3>
+                <p>{s.subtitle}</p>
+                <p>
+                  <strong>Order:</strong> {s.order}
+                </p>
+              </div>
+              <div className="slide-actions">
+                <button onClick={() => setEditingSlide({ ...s, imagePreview: null })}>Edit</button>
+                <button onClick={() => handleToggleActive(s._id)}>{s.active ? "Deactivate" : "Activate"}</button>
+                <button onClick={() => handleDeleteSlide(s._id)}>Delete</button>
+                <button onClick={() => handleReorder(s._id, "up")}>↑</button>
+                <button onClick={() => handleReorder(s._id, "down")}>↓</button>
+              </div>
             </div>
-            <div className="slide-actions">
-              <button onClick={() => setEditingSlide({ ...s, imagePreview: null })}>Edit</button>
-              <button onClick={() => handleToggleActive(s._id)}>{s.active ? "Deactivate" : "Activate"}</button>
-              <button onClick={() => handleDeleteSlide(s._id)}>Delete</button>
-              <button onClick={() => handleReorder(s._id, "up")}>↑</button>
-              <button onClick={() => handleReorder(s._id, "down")}>↓</button>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   )

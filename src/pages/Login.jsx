@@ -78,7 +78,7 @@ function Login({ onLogin }) {
         </form>
 
         <div className="login-footer">
-          <p>Demo: admin@example.com / password</p>
+          <p>This page belongs to an Administrator.</p>
         </div>
       </div>
     </div>

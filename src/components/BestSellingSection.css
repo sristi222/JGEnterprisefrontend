@@ -1,8 +1,7 @@
-/* BestSellingSection.css */
 .prod-section {
-  padding: 60px 0;
+  padding: 30px 0 60px; /* Changed from 60px 0 to 30px 0 60px to reduce top padding */
   background-color: #f9f6f0;
-  margin-top: 20px; /* Added margin to create space from navbar */
+  margin-top: 0; /* Remove top margin since sections are adjacent */
 }
 
 .prod-container {
@@ -42,6 +41,9 @@
   text-decoration: none;
   font-size: 14px;
   transition: color 0.2s;
+  white-space: nowrap; /* Prevent text wrapping */
+  padding: 5px 10px; /* Add padding for better touch target */
+  display: inline-block; /* Ensure proper display */
 }
 
 .prod-view-all:hover {
@@ -161,7 +163,7 @@
   position: absolute;
   bottom: 0;
   right: 0;
-  color: white;
+  color: whitesmoke;
   font-size: 12px;
   font-weight: 600;
   padding: 4px 10px;
@@ -170,7 +172,7 @@
 
 /* Product Info */
 .honey-product-info {
-  padding: 20px;
+  padding: 15px;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -205,14 +207,14 @@
 .honey-product-price {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .honey-current-price {
   font-size: 18px;
   font-weight: 600;
   color: #333;
-  margin-right: 10px;
+  margin-right: 8px;
 }
 
 .honey-original-price {
@@ -255,7 +257,7 @@
 
 .honey-buy-now-btn {
   flex: 1; /* Make buttons share available space equally */
-  background-color: #333;
+  background-color: #2e8b57;
   color: white;
   border: none;
   border-radius: 4px;
@@ -269,7 +271,7 @@
 }
 
 .honey-buy-now-btn:hover {
-  background-color: #222;
+  background-color: #267349;
   transform: translateY(-2px);
 }
 
@@ -287,7 +289,17 @@
   }
 
   .honey-image-container {
-    height: 180px;
+    height: 160px;
+  }
+
+  /* Improved header layout for mobile */
+  .prod-header {
+    align-items: center;
+  }
+
+  .prod-title {
+    font-size: 20px;
+    max-width: 70%; /* Limit title width on mobile */
   }
 }
 
@@ -304,11 +316,11 @@
   }
 
   .honey-image-container {
-    height: 160px;
+    height: 140px;
   }
 
   .honey-product-info {
-    padding: 15px;
+    padding: 12px;
   }
 
   .honey-product-name {
@@ -322,14 +334,25 @@
   .honey-original-price {
     font-size: 12px;
   }
-  
+
   .honey-button-group {
     gap: 6px; /* Even smaller gap on mobile */
   }
-  
+
   .honey-add-to-cart-btn,
   .honey-buy-now-btn {
     font-size: 10px; /* Smaller font on mobile */
     padding: 8px 0;
+  }
+
+  /* Further adjustments for very small screens */
+  .prod-title {
+    font-size: 18px;
+    max-width: 65%;
+  }
+
+  .prod-view-all {
+    font-size: 12px;
+    padding: 4px 8px;
   }
 }

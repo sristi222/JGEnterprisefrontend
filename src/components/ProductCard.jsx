@@ -1,5 +1,4 @@
 "use client"
-
 import { useNavigate } from "react-router-dom"
 import { useCart } from "../context/CartContext"
 import "./ProductCard.css"
@@ -24,26 +23,51 @@ function ProductCard({ product }) {
     navigate("/checkout")
   }
 
-  const getSafeName = () =>
-    typeof product.name === "object" ? product.name.name : product.name
+  const getSafeName = () => (typeof product.name === "object" ? product.name.name : product.name)
 
-  const getSafeWeight = () =>
-    typeof product.weight === "object" ? product.weight.label : product.weight
+  const getQuantityBadgeContent = () => {
+    if (product.unit && typeof product.unit === "string" && product.unit.trim() !== "") {
+      return product.unit
+    }
+    if (typeof product.weight === "object" && product.weight !== null && product.weight.label) {
+      return product.weight.label
+    }
+    if (typeof product.weight === "string" && product.weight.trim() !== "") {
+      return product.weight
+    }
+    return "-" // Default value if neither unit nor weight is available
+  }
 
   const getImageUrl = () => {
     const raw = product.image || product.imageUrl || ""
     if (raw.startsWith("http")) return raw
-    if (raw.trim() !== "") return `http://localhost:5000/uploads/${raw.replace(/^.*[\\\/]/, "")}`
+    if (raw.trim() !== "") return `http://localhost:5000/uploads/${raw.replace(/^.*[\\/]/, "")}`
     return "/placeholder.svg"
   }
 
+  // Calculate the display price and original price based on sale status
+  const getPriceDisplay = () => {
+    if ((product.onSale || product.sale) && product.salePrice) {
+      return {
+        currentPrice: product.salePrice,
+        originalPrice: product.price,
+      }
+    }
+    return {
+      currentPrice: product.price,
+      originalPrice: product.originalPrice,
+    }
+  }
+
+  const { currentPrice, originalPrice } = getPriceDisplay()
+
   return (
     <div className="honey-product-card" onClick={navigateToProduct}>
-      {product.sale && <div className="honey-sale-tag">SALE</div>}
+      {(product.onSale || product.sale) && <div className="honey-sale-tag">SALE</div>}
 
       <div className="honey-image-container">
         <img
-          src={getImageUrl()}
+          src={getImageUrl() || "/placeholder.svg"}
           alt={getSafeName()}
           className="honey-product-image"
           loading="lazy"
@@ -54,11 +78,8 @@ function ProductCard({ product }) {
             e.target.src = "/placeholder.svg"
           }}
         />
-        <div
-          className="honey-quantity-badge"
-          style={{ backgroundColor: product.color || "#333" }}
-        >
-          {getSafeWeight()}
+        <div className="honey-quantity-badge" style={{ backgroundColor: product.color || "#6b7280" }}>
+          {getQuantityBadgeContent()}
         </div>
       </div>
 
@@ -69,10 +90,8 @@ function ProductCard({ product }) {
         </div>
 
         <div className="honey-product-price">
-          <span className="honey-current-price">NRs.{product.price}</span>
-          {product.originalPrice && (
-            <span className="honey-original-price">NRs.{product.originalPrice}</span>
-          )}
+          <span className="honey-current-price">NRs.{currentPrice}</span>
+          {originalPrice && <span className="honey-original-price">NRs.{originalPrice}</span>}
         </div>
 
         <div className="honey-product-actions">

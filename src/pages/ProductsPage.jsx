@@ -18,6 +18,7 @@ function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [selectedSubcategory, setSelectedSubcategory] = useState("All")
   const [sortOption, setSortOption] = useState("default")
+  const [searchTerm, setSearchTerm] = useState("")
 
   const queryParams = new URLSearchParams(location.search)
   const searchParam = queryParams.get("search") || ""
@@ -30,12 +31,9 @@ function ProductsPage() {
       try {
         const res = await fetch("/api/products")
         const data = await res.json()
+
         if (data.success) {
-          const normalized = data.products.map(p => ({
-            ...p,
-            subcategory: typeof p.subcategory === "object" ? p.subcategory.name : p.subcategory
-          }))
-          setProducts(normalized)
+          setProducts(data.products)
         }
       } catch (err) {
         console.error("Error loading products:", err)
@@ -48,9 +46,18 @@ function ProductsPage() {
       try {
         const res = await fetch("/api/categories")
         const data = await res.json()
-        setCategories(data)
+
+        console.log("Categories API response:", data)
+
+        if (Array.isArray(data)) {
+          setCategories(data)
+        } else {
+          console.error("Expected array but got:", data)
+          setCategories([])
+        }
       } catch (err) {
         console.error("Error loading categories:", err)
+        setCategories([])
       }
     }
 
@@ -59,11 +66,12 @@ function ProductsPage() {
   }, [])
 
   useEffect(() => {
-    if (categoryParam) {
+    if (categoryParam && categories.length > 0) {
       setSelectedCategory(categoryParam)
-      const cat = categories.find(c => c._id === categoryParam)
+      const cat = categories.find((c) => c._id === categoryParam)
+      console.log("Found category:", cat)
       setSubcategories(cat?.subcategories || [])
-      setSelectedSubcategory(subcategoryParam?.toLowerCase().trim() || "All")
+      setSelectedSubcategory(subcategoryParam || "All")
     } else {
       setSelectedCategory("All")
       setSelectedSubcategory("All")
@@ -74,26 +82,71 @@ function ProductsPage() {
     if (sortParam) {
       setSortOption(sortParam)
     }
-  }, [location.search, categories])
+
+    if (searchParam) {
+      setSearchTerm(searchParam)
+    }
+  }, [location.search, categories, categoryParam, subcategoryParam, searchParam])
 
   useEffect(() => {
     let filtered = [...products]
 
+    console.log("Filtering - Selected Category:", selectedCategory)
+    console.log("Filtering - Selected Subcategory:", selectedSubcategory)
+    console.log("Available products:", products.length)
+
     if (selectedCategory !== "All") {
-      filtered = filtered.filter(p => p.category?._id === selectedCategory)
+      filtered = filtered.filter((p) => {
+        const categoryId = typeof p.category === "object" ? p.category._id : p.category
+        const matches = categoryId === selectedCategory
+        if (!matches) {
+          console.log("Product category doesn't match:", categoryId, "vs", selectedCategory)
+        }
+        return matches
+      })
+
+      console.log("After category filter:", filtered.length)
+
       if (selectedSubcategory !== "All") {
-        filtered = filtered.filter(
-          p => (p.subcategory || "").toLowerCase().trim() === selectedSubcategory
-        )
+        // Find the selected subcategory object to get its _id
+        const selectedSubcategoryObj = subcategories.find((sub) => sub.name === selectedSubcategory)
+        const selectedSubcategoryId = selectedSubcategoryObj?._id
+
+        console.log("Selected subcategory object:", selectedSubcategoryObj)
+        console.log("Selected subcategory ID:", selectedSubcategoryId)
+
+        filtered = filtered.filter((p) => {
+          // Handle different subcategory formats
+          let productSubcategoryId
+
+          if (typeof p.subcategory === "object" && p.subcategory._id) {
+            // If subcategory is populated object
+            productSubcategoryId = p.subcategory._id
+          } else if (typeof p.subcategory === "string") {
+            // If subcategory is just an ObjectId string
+            productSubcategoryId = p.subcategory
+          }
+
+          const matches = productSubcategoryId === selectedSubcategoryId
+          console.log("Subcategory comparison:", productSubcategoryId, "===", selectedSubcategoryId, "=", matches)
+          return matches
+        })
+
+        console.log("After subcategory filter:", filtered.length)
       }
     }
 
-    if (searchParam) {
-      const term = searchParam.toLowerCase()
-      filtered = filtered.filter(p => {
+    if (searchTerm || searchParam) {
+      const term = (searchTerm || searchParam).toLowerCase()
+      filtered = filtered.filter((p) => {
         const name = typeof p.name === "object" ? p.name.name : p.name
         const sub = typeof p.subcategory === "object" ? p.subcategory.name : p.subcategory
-        return name?.toLowerCase().includes(term) || sub?.toLowerCase().includes(term)
+        const category = typeof p.category === "object" ? p.category.name : p.category
+        return (
+          name?.toLowerCase().includes(term) ||
+          sub?.toLowerCase().includes(term) ||
+          category?.toLowerCase().includes(term)
+        )
       })
     }
 
@@ -123,79 +176,103 @@ function ProductsPage() {
     }
 
     setFilteredProducts(filtered)
-  }, [products, selectedCategory, selectedSubcategory, sortOption, searchParam])
+  }, [products, selectedCategory, selectedSubcategory, sortOption, searchTerm, searchParam, subcategories])
 
-  const updateUrlWithFilters = (category, subcategory, sort) => {
+  const updateUrlWithFilters = (category, subcategory, sort, search) => {
     const params = new URLSearchParams()
     if (category !== "All") params.set("category", category)
-    if (subcategory !== "All") params.set("subcategory", subcategory.toLowerCase().trim())
+    if (subcategory !== "All") params.set("subcategory", subcategory)
     if (sort !== "default") params.set("sort", sort)
-    if (searchParam) params.set("search", searchParam)
+    if (search) params.set("search", search)
     navigate({ pathname: location.pathname, search: params.toString() }, { replace: true })
   }
 
+  const handleCategoryChange = (e) => {
+    const cat = e.target.value
+    setSelectedCategory(cat)
+    setSelectedSubcategory("All")
+
+    const selectedCat = categories.find((c) => c._id === cat)
+    console.log("Selected category object:", selectedCat)
+    console.log("Subcategories:", selectedCat?.subcategories)
+    setSubcategories(selectedCat?.subcategories || [])
+
+    updateUrlWithFilters(cat, "All", sortOption, searchTerm)
+  }
+
+  const handleSubcategoryChange = (e) => {
+    const sub = e.target.value
+    console.log("Subcategory changed to:", sub)
+    setSelectedSubcategory(sub)
+    updateUrlWithFilters(selectedCategory, sub, sortOption, searchTerm)
+  }
+
+  const handleSortChange = (e) => {
+    setSortOption(e.target.value)
+    updateUrlWithFilters(selectedCategory, selectedSubcategory, e.target.value, searchTerm)
+  }
+
+  const handleSearchChange = (e) => {
+    const search = e.target.value
+    setSearchTerm(search)
+    updateUrlWithFilters(selectedCategory, selectedSubcategory, sortOption, search)
+  }
+
   return (
-    <div className="products-page">
-      <div className="products-container">
-        <div className="products-header">
+    <div className="products-listing-page">
+      <div className="products-listing-container">
+        <div className="products-listing-header">
           <h1>Our Products</h1>
-          {searchParam && (
-            <p className="search-results">
-              Search results for: <span>"{searchParam}"</span>
-            </p>
-          )}
+          <p className="products-listing-search-results">
+            Showing <span>{filteredProducts.length}</span> products
+            {(searchParam || searchTerm) && (
+              <>
+                {" "}
+                for "<span>{searchParam || searchTerm}</span>"
+              </>
+            )}
+          </p>
         </div>
 
-        <div className="products-filters">
-          <div className="filter-row">
-            <div className="filter-group">
+        <div className="products-listing-filters">
+          <div className="products-listing-filter-row">
+            <div className="products-listing-filter-group">
               <label>Category:</label>
               <select
+                className="products-listing-filter-select"
                 value={selectedCategory}
-                onChange={(e) => {
-                  const cat = e.target.value
-                  setSelectedCategory(cat)
-                  setSelectedSubcategory("All")
-                  const selectedCat = categories.find(c => c._id === cat)
-                  setSubcategories(selectedCat?.subcategories || [])
-                  updateUrlWithFilters(cat, "All", sortOption)
-                }}
+                onChange={handleCategoryChange}
               >
                 <option value="All">All Categories</option>
-                {categories.map(cat => (
-                  <option key={cat._id} value={cat._id}>{cat.name}</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
                 ))}
               </select>
             </div>
 
-            {selectedCategory !== "All" && (
-              <div className="filter-group">
+            {selectedCategory !== "All" && subcategories && subcategories.length > 0 && (
+              <div className="products-listing-filter-group">
                 <label>Subcategory:</label>
                 <select
+                  className="products-listing-filter-select"
                   value={selectedSubcategory}
-                  onChange={(e) => {
-                    const sub = e.target.value.toLowerCase().trim()
-                    setSelectedSubcategory(sub)
-                    updateUrlWithFilters(selectedCategory, sub, sortOption)
-                  }}
+                  onChange={handleSubcategoryChange}
                 >
                   <option value="All">All Subcategories</option>
-                  {subcategories.map(sub => (
-                    <option key={sub._id} value={sub.name.toLowerCase().trim()}>{sub.name}</option>
+                  {subcategories.map((sub) => (
+                    <option key={sub._id} value={sub.name}>
+                      {sub.name}
+                    </option>
                   ))}
                 </select>
               </div>
             )}
 
-            <div className="filter-group">
+            <div className="products-listing-filter-group">
               <label>Sort By:</label>
-              <select
-                value={sortOption}
-                onChange={(e) => {
-                  setSortOption(e.target.value)
-                  updateUrlWithFilters(selectedCategory, selectedSubcategory, e.target.value)
-                }}
-              >
+              <select className="products-listing-filter-select" value={sortOption} onChange={handleSortChange}>
                 <option value="default">Featured</option>
                 <option value="price-low-high">Price: Low to High</option>
                 <option value="price-high-low">Price: High to Low</option>
@@ -203,23 +280,34 @@ function ProductsPage() {
                 <option value="name-z-a">Name: Z to A</option>
               </select>
             </div>
+
+            <div className="products-listing-filter-group">
+              <label>Search:</label>
+              <input
+                type="text"
+                className="products-listing-filter-select search-input"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
+            </div>
           </div>
         </div>
 
         {loading ? (
-          <div className="products-loading">
-            <div className="products-spinner"></div>
+          <div className="products-listing-loading">
+            <div className="products-listing-spinner"></div>
             <p>Loading products...</p>
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="products-grid">
-            {filteredProducts.map(product => (
+          <div className="products-listing-grid">
+            {filteredProducts.map((product) => (
               <ProductCard key={product._id || product.id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="no-products">
-            <p>No products found. Try a different search or category.</p>
+          <div className="products-listing-no-products">
+            <p>No products found. Try changing your filters or search terms.</p>
           </div>
         )}
       </div>

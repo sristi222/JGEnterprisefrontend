@@ -10,6 +10,7 @@ function EditProduct() {
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [categories, setCategories] = useState([])
+  const [calculatedDiscount, setCalculatedDiscount] = useState(null)
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -46,7 +47,7 @@ function EditProduct() {
       try {
         const res = await fetch("/api/categories")
         const data = await res.json()
-        setCategories(data)
+        setCategories(Array.isArray(data) ? data : data.categories || [])
       } catch (err) {
         console.error("Error loading categories", err)
       }
@@ -63,8 +64,10 @@ function EditProduct() {
         if (res.ok) {
           setFormData({
             ...data,
+            category: typeof data.category === "object" ? data.category._id : data.category,
+            subcategory: typeof data.subcategory === "object" ? data.subcategory._id : data.subcategory,
             image: null,
-            imagePreview: data.imageUrl ? `http://localhost:5000${data.imageUrl}` : null,
+            imagePreview: data.imageUrl || data.image || null,
           })
         } else {
           alert("Failed to fetch product")
@@ -82,12 +85,42 @@ function EditProduct() {
     fetchProduct()
   }, [id, navigate])
 
+  // Calculate discount percentage when price or sale price changes
+  useEffect(() => {
+    if (formData.onSale && formData.price && formData.salePrice) {
+      const originalPrice = Number.parseFloat(formData.price)
+      const discountedPrice = Number.parseFloat(formData.salePrice)
+
+      if (originalPrice > 0 && discountedPrice > 0 && discountedPrice < originalPrice) {
+        const discount = ((originalPrice - discountedPrice) / originalPrice) * 100
+        setCalculatedDiscount(Math.round(discount))
+      } else {
+        setCalculatedDiscount(null)
+      }
+    } else {
+      setCalculatedDiscount(null)
+    }
+  }, [formData.price, formData.salePrice, formData.onSale])
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }))
+  }
+
+  const handleDiscountChange = (e) => {
+    const discountPercent = Number.parseFloat(e.target.value)
+    if (!isNaN(discountPercent) && formData.price) {
+      const originalPrice = Number.parseFloat(formData.price)
+      const calculatedSalePrice = originalPrice - originalPrice * (discountPercent / 100)
+
+      setFormData((prev) => ({
+        ...prev,
+        salePrice: calculatedSalePrice.toFixed(2),
+      }))
+    }
   }
 
   const handleImageChange = (e) => {
@@ -108,7 +141,7 @@ function EditProduct() {
     for (const [key, value] of Object.entries(formData)) {
       if (key === "image" && value) {
         formDataToSend.append("image", value)
-      } else {
+      } else if (key !== "imagePreview") {
         formDataToSend.append(key, value)
       }
     }
@@ -120,7 +153,7 @@ function EditProduct() {
       })
       const data = await res.json()
       if (res.ok) {
-        alert("✅ Product updated")
+        alert("✅ Product updated successfully")
         navigate("/admin/products")
       } else {
         alert(data.error || "Failed to update product")
@@ -133,18 +166,16 @@ function EditProduct() {
     }
   }
 
-  const calculateDiscount = () => {
-    if (formData.onSale && formData.price && formData.salePrice) {
-      const regular = parseFloat(formData.price)
-      const sale = parseFloat(formData.salePrice)
-      return regular > 0 && sale > 0 && sale < regular
-        ? (((regular - sale) / regular) * 100).toFixed(0)
-        : 0
-    }
-    return 0
+  if (loading) {
+    return (
+      <div className="product-form-container">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading product details...</p>
+        </div>
+      </div>
+    )
   }
-
-  if (loading) return <div className="loading-container">Loading product details...</div>
 
   return (
     <div className="product-form-container">
@@ -160,97 +191,207 @@ function EditProduct() {
           <div className="form-left">
             <div className="form-group">
               <label htmlFor="name">Product Name*</label>
-              <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+              <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required />
             </div>
 
             <div className="form-group">
               <label htmlFor="description">Description</label>
-              <textarea name="description" value={formData.description} onChange={handleChange} rows={4} />
+              <textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows={4}
+              />
             </div>
 
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="category">Category*</label>
-                <select name="category" value={formData.category} onChange={handleChange} required>
+                <select id="category" name="category" value={formData.category} onChange={handleChange} required>
                   <option value="">Select Category</option>
                   {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="form-group">
                 <label htmlFor="subcategory">Subcategory*</label>
-                <select name="subcategory" value={formData.subcategory} onChange={handleChange} required disabled={!formData.category}>
+                <select
+                  id="subcategory"
+                  name="subcategory"
+                  value={formData.subcategory}
+                  onChange={handleChange}
+                  required
+                  disabled={!formData.category}
+                >
                   <option value="">Select Subcategory</option>
                   {formData.category &&
-                    categories.find((cat) => cat._id === formData.category)?.subcategories.map((sub) => (
-                      <option key={sub._id} value={sub._id}>{sub.name}</option>
-                    ))}
+                    categories
+                      .find((cat) => cat._id === formData.category)
+                      ?.subcategories?.map((subcat) => (
+                        <option key={subcat._id} value={subcat._id}>
+                          {subcat.name}
+                        </option>
+                      ))}
                 </select>
               </div>
             </div>
 
-            <div className="form-group checkbox-group">
-              <label><input type="checkbox" name="displayInLatest" checked={formData.displayInLatest} onChange={handleChange} /> Display in Latest</label>
-              <label><input type="checkbox" name="displayInBestSelling" checked={formData.displayInBestSelling} onChange={handleChange} /> Display in Best Selling</label>
-              <label><input type="checkbox" name="onSale" checked={formData.onSale} onChange={handleChange} /> On Sale</label>
-            </div>
-
             <div className="form-row">
               <div className="form-group">
-                <label>{formData.onSale ? "Regular Price*" : "Price*"}</label>
-                <input type="number" name="price" value={formData.price} onChange={handleChange} required />
+                <label htmlFor="price">Price*</label>
+                <input type="number" id="price" name="price" value={formData.price} onChange={handleChange} required />
               </div>
-              {formData.onSale ? (
-                <div className="form-group">
-                  <label>Sale Price*</label>
-                  <input type="number" name="salePrice" value={formData.salePrice} onChange={handleChange} required />
-                  {calculateDiscount() > 0 && <div className="sale-info">Discount: {calculateDiscount()}%</div>}
-                </div>
-              ) : (
-                <div className="form-group">
-                  <label>Cost Price</label>
-                  <input type="number" name="costPrice" value={formData.costPrice} onChange={handleChange} />
-                </div>
-              )}
+              <div className="form-group">
+                <label htmlFor="costPrice">Cost Price</label>
+                <input
+                  type="number"
+                  id="costPrice"
+                  name="costPrice"
+                  value={formData.costPrice}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label>Unit*</label>
-                <select name="unit" value={formData.unit} onChange={handleChange} required>
-                  {unitOptions.map((u) => (
-                    <option key={u.value} value={u.value}>{u.label}</option>
+                <label htmlFor="unit">Unit*</label>
+                <select id="unit" name="unit" value={formData.unit} onChange={handleChange} required>
+                  {unitOptions.map((unit) => (
+                    <option key={unit.value} value={unit.value}>
+                      {unit.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="form-group">
-                <label>Stock Quantity*</label>
-                <input type="number" name="stock" value={formData.stock} onChange={handleChange} required />
+                <label htmlFor="stock">Stock*</label>
+                <input type="number" id="stock" name="stock" value={formData.stock} onChange={handleChange} required />
               </div>
             </div>
+
+            <div className="form-group checkboxes">
+              <label htmlFor="displayInLatest" className="checkbox-label">
+                <input
+                  type="checkbox"
+                  id="displayInLatest"
+                  name="displayInLatest"
+                  checked={formData.displayInLatest}
+                  onChange={handleChange}
+                />
+                <span>Display in Latest</span>
+              </label>
+              <label htmlFor="displayInBestSelling" className="checkbox-label">
+                <input
+                  type="checkbox"
+                  id="displayInBestSelling"
+                  name="displayInBestSelling"
+                  checked={formData.displayInBestSelling}
+                  onChange={handleChange}
+                />
+                <span>Display in Best Selling</span>
+              </label>
+              <label htmlFor="onSale" className="checkbox-label">
+                <input type="checkbox" id="onSale" name="onSale" checked={formData.onSale} onChange={handleChange} />
+                <span>On Sale</span>
+              </label>
+            </div>
+
+            {formData.onSale && (
+              <div className="sale-section">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="salePrice">Sale Price*</label>
+                    <input
+                      type="number"
+                      id="salePrice"
+                      name="salePrice"
+                      value={formData.salePrice}
+                      onChange={handleChange}
+                      required
+                      className={
+                        Number.parseFloat(formData.salePrice) >= Number.parseFloat(formData.price) ? "price-error" : ""
+                      }
+                    />
+                    {Number.parseFloat(formData.salePrice) >= Number.parseFloat(formData.price) && (
+                      <p className="error-message">Sale price must be less than regular price</p>
+                    )}
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="discountPercent">Discount %</label>
+                    <div className="discount-input-group">
+                      <input
+                        type="number"
+                        id="discountPercent"
+                        name="discountPercent"
+                        value={calculatedDiscount || ""}
+                        onChange={handleDiscountChange}
+                        min="0"
+                        max="99"
+                      />
+                      <span className="discount-symbol">%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {calculatedDiscount && (
+                  <div className="discount-preview">
+                    <div className="discount-badge">
+                      <span className="discount-value">{calculatedDiscount}% OFF</span>
+                    </div>
+                    <div className="price-comparison">
+                      <span className="original-price">₹{formData.price}</span>
+                      <span className="arrow">→</span>
+                      <span className="sale-price">₹{formData.salePrice}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="form-right">
             <div className="form-group">
-              <label>Product Image</label>
+              <label htmlFor="image">Product Image</label>
               <div className="image-upload-container">
-                <div className="image-preview" style={{ backgroundImage: formData.imagePreview ? `url(${formData.imagePreview})` : "none" }}>
-                  {!formData.imagePreview && <span>No image selected</span>}
-                  {formData.imagePreview && formData.onSale && <div className="sale-tag-preview">SALE</div>}
-                </div>
                 <input type="file" id="image" name="image" accept="image/*" onChange={handleImageChange} />
-                <label htmlFor="image" className="image-upload-label">Change Image</label>
+                <div className="upload-placeholder">
+                  {!formData.imagePreview && (
+                    <div className="placeholder-content">
+                      <span className="upload-icon">📷</span>
+                      <span>Click to upload or drag image here</span>
+                    </div>
+                  )}
+                  {formData.imagePreview && (
+                    <div className="image-preview-container">
+                      <img src={formData.imagePreview || "/placeholder.svg"} alt="Preview" className="image-preview" />
+                      {formData.onSale && <div className="sale-overlay">SALE</div>}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <div className="form-actions">
-          <button type="button" className="cancel-btn" onClick={() => navigate("/admin/products")}>Cancel</button>
-          <button type="submit" className="submit-btn" disabled={isSubmitting}>
+          <button type="button" className="cancel-btn" onClick={() => navigate("/admin/products")}>
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="submit-btn"
+            disabled={
+              isSubmitting ||
+              (formData.onSale && Number.parseFloat(formData.salePrice) >= Number.parseFloat(formData.price))
+            }
+          >
             {isSubmitting ? "Updating Product..." : "Update Product"}
           </button>
         </div>

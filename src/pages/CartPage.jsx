@@ -4,7 +4,7 @@ import { useCart } from "../context/CartContext"
 import "./CartPage.css"
 
 function CartPage() {
-  const { cart, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart()
+  const { cart, cartTotal, cartCount, updateQuantity, removeFromCart, clearCart } = useCart()
   const navigate = useNavigate()
 
   const formatDate = () => {
@@ -21,12 +21,53 @@ function CartPage() {
     navigate("/checkout")
   }
 
+  // Helper to get item ID safely
+  const getItemId = (item) => item.id || item._id
+
+  // Helper to get image URL with proper fallbacks
   const getImageUrl = (image) => {
     if (!image) return "/placeholder.svg"
     if (image.startsWith("http")) return image
     if (image.startsWith("/uploads/")) return `http://localhost:5000${image}`
     return `http://localhost:5000/uploads/${image.replace(/^.*[\\/]/, "")}`
   }
+
+  // Helper to get the correct price for display (considering sale prices)
+  const getItemPrice = (item) => {
+    if ((item.onSale || item.sale) && item.salePrice) {
+      return item.salePrice
+    }
+    return item.price
+  }
+
+  // Helper to get original price if item is on sale
+  const getOriginalPrice = (item) => {
+    if ((item.onSale || item.sale) && item.salePrice) {
+      return item.price
+    }
+    return item.originalPrice
+  }
+
+  // Calculate total savings
+  const totalSavings = cart.reduce((savings, item) => {
+    const originalPrice = getOriginalPrice(item)
+    const currentPrice = getItemPrice(item)
+    if (originalPrice && originalPrice > currentPrice) {
+      return savings + (originalPrice - currentPrice) * item.quantity
+    }
+    return savings
+  }, 0)
+
+  // Add this function after the existing helper functions
+  const calculateDiscountedTotal = () => {
+    return cart.reduce((total, item) => {
+      const currentPrice = getItemPrice(item)
+      return total + currentPrice * item.quantity
+    }, 0)
+  }
+
+  // Update the cart summary section to use the discounted total
+  const discountedTotal = calculateDiscountedTotal()
 
   if (cart.length === 0) {
     return (
@@ -77,46 +118,61 @@ function CartPage() {
             <div className="cart-list-header">
               <h3>My List - {formatDate()}</h3>
               <p className="cart-confirmation">
-                {cart.length}/{cart.length} confirmed
+                {cart.length} items ({cartCount} total quantity) - {cart.length}/{cart.length} confirmed
               </p>
             </div>
 
             <div className="cart-items">
-              {cart.map((item) => (
-                <div className="cart-item" key={item.id || item._id}>
-                  <button className="cart-remove-btn" onClick={() => removeFromCart(item.id || item._id)}>
-                    ×
-                  </button>
-                  <div className="cart-item-image">
-                    <img
-                      src={getImageUrl(item.image || item.imageUrl)}
-                      alt={item.name}
-                      onError={(e) => {
-                        e.target.onerror = null
-                        e.target.src = "/placeholder.svg"
-                      }}
-                      style={{ objectFit: "cover", width: "100%", height: "100%" }}
-                    />
-                  </div>
-                  <div className="cart-item-details">
-                    <h4>{item.name}</h4>
-                    <p className="cart-item-price">NRs. {item.price}</p>
-                    <div className="cart-quantity-selector">
-                      <button
-                        onClick={() => updateQuantity(item.id || item._id, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                      >
-                        -
-                      </button>
-                      <span>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id || item._id, item.quantity + 1)}>
-                        +
-                      </button>
+              {cart.map((item) => {
+                const itemId = getItemId(item)
+                const currentPrice = getItemPrice(item)
+                const originalPrice = getOriginalPrice(item)
+                const isOnSale = (item.onSale || item.sale) && item.salePrice
+
+                return (
+                  <div className="cart-item" key={itemId}>
+                    {isOnSale && <div className="cart-item-sale-badge">SALE</div>}
+                    <button className="cart-remove-btn" onClick={() => removeFromCart(itemId)}>
+                      ×
+                    </button>
+                    <div className="cart-item-image">
+                      <img
+                        src={getImageUrl(item.image || item.imageUrl)}
+                        alt={item.name}
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.src = "/placeholder.svg"
+                        }}
+                        style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                      />
+                    </div>
+                    <div className="cart-item-details">
+                      <h4>{item.name}</h4>
+                      <div className="cart-item-price-container">
+                        <p className="cart-item-price">NRs. {currentPrice}</p>
+                        {originalPrice && originalPrice > currentPrice && (
+                          <p className="cart-item-original-price">NRs. {originalPrice}</p>
+                        )}
+                      </div>
+                      <div className="cart-quantity-selector">
+                        <button onClick={() => updateQuantity(itemId, item.quantity - 1)} disabled={item.quantity <= 1}>
+                          -
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button onClick={() => updateQuantity(itemId, item.quantity + 1)}>+</button>
+                      </div>
+                    </div>
+                    <div className="cart-item-total">
+                      <span className="cart-item-total-price">NRs. {currentPrice * item.quantity}</span>
+                      {originalPrice && originalPrice > currentPrice && (
+                        <span className="cart-item-savings">
+                          Save NRs. {(originalPrice - currentPrice) * item.quantity}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div className="cart-item-total">NRs. {item.price * item.quantity}</div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <div className="cart-notes">
@@ -136,18 +192,25 @@ function CartPage() {
           <div className="cart-summary">
             <div className="summary-header">
               <h3>Order Summary</h3>
+              <p className="summary-items-count">{cartCount} items in cart</p>
             </div>
             <div className="summary-content">
               <div className="summary-row">
-                <span>Subtotal</span>
-                <span>NRs. {cartTotal}</span>
+                <span>Subtotal ({cartCount} items)</span>
+                <span>NRs. {discountedTotal}</span>
               </div>
+              {totalSavings > 0 && (
+                <div className="summary-row savings-row">
+                  <span>Total Savings</span>
+                  <span className="savings-amount">-NRs. {totalSavings}</span>
+                </div>
+              )}
               <div className="summary-total">
                 <span>Total</span>
-                <span>NRs. {cartTotal}</span>
+                <span>NRs. {discountedTotal}</span>
               </div>
               <button className="checkout-btn" onClick={handleProceedToCheckout}>
-                Proceed to Checkout
+                Proceed to Checkout ({cartCount} items)
               </button>
             </div>
           </div>

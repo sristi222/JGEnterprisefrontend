@@ -1,10 +1,24 @@
 "use client"
 
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { useState } from "react"
 import "./Footer.css"
 
 function Footer() {
   const currentYear = new Date().getFullYear()
+  const [clickCount, setClickCount] = useState(0)
+  const navigate = useNavigate()
+
+  const handleCopyrightClick = () => {
+    const newCount = clickCount + 1
+    setClickCount(newCount)
+
+    if (newCount === 5) {
+      // Reset count and navigate to admin login
+      setClickCount(0)
+      navigate("/admin/login")
+    }
+  }
 
   return (
     <footer className="footer">
@@ -83,7 +97,7 @@ function Footer() {
                 </div>
                 <div className="contact-text">
                   <p>+977 9841241832</p>
-                  <p>01-4511000</p>
+                  
                 </div>
               </div>
 
@@ -137,7 +151,9 @@ function Footer() {
 
       <div className="footer-bottom">
         <div className="footer-container">
-          <p className="copyright">&copy; {currentYear} Dinesh Laal's Shop. All Rights Reserved.</p>
+          <p className="copyright" onClick={handleCopyrightClick}>
+            &copy; {currentYear} Dinesh Laal's Shop. All Rights Reserved.
+          </p>
           <p className="developer-credit">Designed and developed by Zenkai Studio</p>
         </div>
       </div>

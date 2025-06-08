@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+"use client"
+
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom"
 import { useState, useEffect } from "react"
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
@@ -15,6 +17,7 @@ import CartSidebar from "./components/CartSidebar"
 import "./App.css"
 import CheckoutPage from "./components/CheckoutPage"
 import CheckoutSuccess from "./components/CheckoutSuccess"
+import AboutUs from "./components/AboutUs"
 
 // Admin imports
 import Dashboard from "./pages/Dashboard"
@@ -25,6 +28,17 @@ import Login from "./pages/Login"
 import AddProduct from "./pages/products/AddProduct"
 import EditProduct from "./pages/products/EditProduct"
 import AdminLayout from "./components/AdminLayout"
+
+// New ScrollToTop component
+function ScrollToTop() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+
+  return null
+}
 
 // Optional fallback
 const NoMatch = () => (
@@ -49,6 +63,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop /> {/* Render the ScrollToTop component here */}
       <CartProvider>
         <div className="App">
           <CartSidebar />
@@ -58,10 +73,12 @@ function App() {
             <Route
               path="/admin/login"
               element={
-                <Login onLogin={(token) => {
-                  localStorage.setItem("adminToken", token)
-                  setAdminToken(token)
-                }} />
+                <Login
+                  onLogin={(token) => {
+                    localStorage.setItem("adminToken", token)
+                    setAdminToken(token)
+                  }}
+                />
               }
             />
 
@@ -188,6 +205,16 @@ function App() {
                 <>
                   <Navbar />
                   <ContactPage />
+                  <Footer />
+                </>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <>
+                  <Navbar />
+                  <AboutUs />
                   <Footer />
                 </>
               }
