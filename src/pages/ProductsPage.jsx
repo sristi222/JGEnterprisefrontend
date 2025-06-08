@@ -29,7 +29,7 @@ function ProductsPage() {
     const fetchProducts = async () => {
       setLoading(true)
       try {
-        const res = await fetch("/api/products")
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/products`)
         const data = await res.json()
 
         if (data.success) {
@@ -44,7 +44,7 @@ function ProductsPage() {
 
     const fetchCategories = async () => {
       try {
-        const res = await fetch("/api/categories")
+        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categories`)
         const data = await res.json()
 
         console.log("Categories API response:", data)
