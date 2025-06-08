@@ -13,8 +13,8 @@ function CartSidebar() {
   const getImageUrl = (image) => {
     if (!image) return "/placeholder.svg"
     if (image.startsWith("http")) return image
-    if (image.startsWith("/uploads/")) return `http://localhost:5000${image}`
-    return `http://localhost:5000/uploads/${image.replace(/^.*[\\/]/, "")}`
+    if (image.startsWith("/uploads/")) return `https://jgenterprisebackend-1.onrender.com${image}`
+    return `https://jgenterprisebackend-1.onrender.com/uploads/${image.replace(/^.*[\\/]/, "")}`
   }
 
   // Helper to get item ID safely
