@@ -43,7 +43,7 @@ function Categories() {
   const handleAddCategory = async (e) => {
     e.preventDefault()
     try {
-      const res = await fetch("/api/categories", {
+      const res = await fetch("https://jgenterprisebackend-1.onrender.com/api/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newCategory),
