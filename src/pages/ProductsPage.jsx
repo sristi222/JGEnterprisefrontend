@@ -20,6 +20,8 @@ function ProductsPage() {
   const [sortOption, setSortOption] = useState("default")
   const [searchTerm, setSearchTerm] = useState("")
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL
+
   const queryParams = new URLSearchParams(location.search)
   const searchParam = queryParams.get("search") || ""
   const categoryParam = queryParams.get("category")
@@ -29,9 +31,8 @@ function ProductsPage() {
     const fetchProducts = async () => {
       setLoading(true)
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/products`)
+        const res = await fetch(`${API_BASE}/api/products`)
         const data = await res.json()
-
         if (data.success) {
           setProducts(data.products)
         }
@@ -44,11 +45,8 @@ function ProductsPage() {
 
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/categories`)
+        const res = await fetch(`${API_BASE}/api/categories`)
         const data = await res.json()
-
-        console.log("Categories API response:", data)
-
         if (Array.isArray(data)) {
           setCategories(data)
         } else {
@@ -63,13 +61,12 @@ function ProductsPage() {
 
     fetchProducts()
     fetchCategories()
-  }, [])
+  }, [API_BASE])
 
   useEffect(() => {
     if (categoryParam && categories.length > 0) {
       setSelectedCategory(categoryParam)
       const cat = categories.find((c) => c._id === categoryParam)
-      console.log("Found category:", cat)
       setSubcategories(cat?.subcategories || [])
       setSelectedSubcategory(subcategoryParam || "All")
     } else {
@@ -91,48 +88,25 @@ function ProductsPage() {
   useEffect(() => {
     let filtered = [...products]
 
-    console.log("Filtering - Selected Category:", selectedCategory)
-    console.log("Filtering - Selected Subcategory:", selectedSubcategory)
-    console.log("Available products:", products.length)
-
     if (selectedCategory !== "All") {
       filtered = filtered.filter((p) => {
         const categoryId = typeof p.category === "object" ? p.category._id : p.category
-        const matches = categoryId === selectedCategory
-        if (!matches) {
-          console.log("Product category doesn't match:", categoryId, "vs", selectedCategory)
-        }
-        return matches
+        return categoryId === selectedCategory
       })
 
-      console.log("After category filter:", filtered.length)
-
       if (selectedSubcategory !== "All") {
-        // Find the selected subcategory object to get its _id
         const selectedSubcategoryObj = subcategories.find((sub) => sub.name === selectedSubcategory)
         const selectedSubcategoryId = selectedSubcategoryObj?._id
 
-        console.log("Selected subcategory object:", selectedSubcategoryObj)
-        console.log("Selected subcategory ID:", selectedSubcategoryId)
-
         filtered = filtered.filter((p) => {
-          // Handle different subcategory formats
           let productSubcategoryId
-
           if (typeof p.subcategory === "object" && p.subcategory._id) {
-            // If subcategory is populated object
             productSubcategoryId = p.subcategory._id
           } else if (typeof p.subcategory === "string") {
-            // If subcategory is just an ObjectId string
             productSubcategoryId = p.subcategory
           }
-
-          const matches = productSubcategoryId === selectedSubcategoryId
-          console.log("Subcategory comparison:", productSubcategoryId, "===", selectedSubcategoryId, "=", matches)
-          return matches
+          return productSubcategoryId === selectedSubcategoryId
         })
-
-        console.log("After subcategory filter:", filtered.length)
       }
     }
 
@@ -158,18 +132,10 @@ function ProductsPage() {
         filtered.sort((a, b) => b.price - a.price)
         break
       case "name-a-z":
-        filtered.sort((a, b) => {
-          const nameA = typeof a.name === "object" ? a.name.name : a.name
-          const nameB = typeof b.name === "object" ? b.name.name : b.name
-          return nameA?.localeCompare(nameB)
-        })
+        filtered.sort((a, b) => a.name.localeCompare(b.name))
         break
       case "name-z-a":
-        filtered.sort((a, b) => {
-          const nameA = typeof a.name === "object" ? a.name.name : a.name
-          const nameB = typeof b.name === "object" ? b.name.name : b.name
-          return nameB?.localeCompare(nameA)
-        })
+        filtered.sort((a, b) => b.name.localeCompare(a.name))
         break
       default:
         break
@@ -193,8 +159,6 @@ function ProductsPage() {
     setSelectedSubcategory("All")
 
     const selectedCat = categories.find((c) => c._id === cat)
-    console.log("Selected category object:", selectedCat)
-    console.log("Subcategories:", selectedCat?.subcategories)
     setSubcategories(selectedCat?.subcategories || [])
 
     updateUrlWithFilters(cat, "All", sortOption, searchTerm)
@@ -202,7 +166,6 @@ function ProductsPage() {
 
   const handleSubcategoryChange = (e) => {
     const sub = e.target.value
-    console.log("Subcategory changed to:", sub)
     setSelectedSubcategory(sub)
     updateUrlWithFilters(selectedCategory, sub, sortOption, searchTerm)
   }
@@ -252,7 +215,7 @@ function ProductsPage() {
               </select>
             </div>
 
-            {selectedCategory !== "All" && subcategories && subcategories.length > 0 && (
+            {selectedCategory !== "All" && subcategories.length > 0 && (
               <div className="products-listing-filter-group">
                 <label>Subcategory:</label>
                 <select
@@ -272,7 +235,11 @@ function ProductsPage() {
 
             <div className="products-listing-filter-group">
               <label>Sort By:</label>
-              <select className="products-listing-filter-select" value={sortOption} onChange={handleSortChange}>
+              <select
+                className="products-listing-filter-select"
+                value={sortOption}
+                onChange={handleSortChange}
+              >
                 <option value="default">Featured</option>
                 <option value="price-low-high">Price: Low to High</option>
                 <option value="price-high-low">Price: High to Low</option>
