@@ -1,99 +1,115 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { Table, LayoutGrid, Search, Plus, Edit, Trash2, Package, Filter } from "lucide-react"
-import "./Products.css"
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Table,
+  LayoutGrid,
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  Package,
+  Filter,
+} from "lucide-react";
+import "./Products.css";
 
 function Products() {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("")
-  const [categories, setCategories] = useState([])
-  const [viewMode, setViewMode] = useState("table") // table or cards
-  const navigate = useNavigate()
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [viewMode, setViewMode] = useState("table");
+  const navigate = useNavigate();
+
+  const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/products`)
-        const data = await res.json()
+        const res = await fetch(`${API_BASE}/api/products`);
+        const data = await res.json();
         if (data.success) {
-          setProducts(data.products)
+          setProducts(data.products);
         } else {
-          console.error("Failed to fetch products")
+          console.error("Failed to fetch products");
         }
       } catch (err) {
-        console.error("Error fetching products:", err)
+        console.error("Error fetching products:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
     const fetchCategories = async () => {
       try {
-        const res = await fetch("/api/categories")
-        const data = await res.json()
+        const res = await fetch(`${API_BASE}/api/categories`);
+        const data = await res.json();
         if (Array.isArray(data)) {
-          setCategories(["All Categories", ...data.map((cat) => ({ id: cat._id, name: cat.name }))])
+          setCategories([
+            "All Categories",
+            ...data.map((cat) => ({ id: cat._id, name: cat.name })),
+          ]);
         }
       } catch (err) {
-        console.error("Error loading categories:", err)
+        console.error("Error loading categories:", err);
       }
-    }
+    };
 
-    fetchProducts()
-    fetchCategories()
-  }, [])
+    fetchProducts();
+    fetchCategories();
+  }, [API_BASE]);
 
   const handleDeleteProduct = async (id) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        const res = await fetch(`/api/products/${id}`, { method: "DELETE" })
-        const result = await res.json()
+        const res = await fetch(`${API_BASE}/api/products/${id}`, {
+          method: "DELETE",
+        });
+        const result = await res.json();
         if (result.success) {
-          setProducts(products.filter((product) => product._id !== id))
+          setProducts(products.filter((product) => product._id !== id));
         } else {
-          alert("Failed to delete product")
+          alert("Failed to delete product");
         }
       } catch (err) {
-        console.error("Error deleting product:", err)
-        alert("Error deleting product")
+        console.error("Error deleting product:", err);
+        alert("Error deleting product");
       }
     }
-  }
+  };
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch = product.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
     const matchesCategory =
       categoryFilter === "" ||
       categoryFilter === "All Categories" ||
       product.category?._id === categoryFilter ||
-      product.category === categoryFilter
+      product.category === categoryFilter;
 
-    return matchesSearch && matchesCategory
-  })
+    return matchesSearch && matchesCategory;
+  });
 
-  // Cloudinary-safe image rendering
-  const getImageUrl = (url) => {
-    if (!url) return "/placeholder.svg"
-    return url
-  }
+  const getImageUrl = (url) => (!url ? "/placeholder.svg" : url);
 
-  // Calculate discount percentage
   const calculateDiscount = (originalPrice, salePrice) => {
-    if (!originalPrice || !salePrice || salePrice >= originalPrice) return null
-    return Math.round(((originalPrice - salePrice) / originalPrice) * 100)
-  }
+    if (!originalPrice || !salePrice || salePrice >= originalPrice) return null;
+    return Math.round(((originalPrice - salePrice) / originalPrice) * 100);
+  };
 
   const ProductCard = ({ product }) => {
-    const discount = calculateDiscount(product.price, product.salePrice)
-
+    const discount = calculateDiscount(product.price, product.salePrice);
     return (
       <div className="product-card">
         <div className="product-card-image">
-          <img src={getImageUrl(product.imageUrl || product.image)} alt={product.name} className="card-thumbnail" />
+          <img
+            src={getImageUrl(product.imageUrl || product.image)}
+            alt={product.name}
+            className="card-thumbnail"
+          />
           {product.onSale && <div className="card-sale-badge">SALE</div>}
         </div>
 
@@ -104,18 +120,26 @@ function Products() {
             </h3>
             {product.description && (
               <p className="card-product-description" title={product.description}>
-                {product.description.length > 80 ? `${product.description.substring(0, 80)}...` : product.description}
+                {product.description.length > 80
+                  ? `${product.description.substring(0, 80)}...`
+                  : product.description}
               </p>
             )}
             <div className="card-product-badges">
               {product.displayInLatest && <span className="latest-badge">LATEST</span>}
-              {product.displayInBestSelling && <span className="bestseller-badge">BESTSELLER</span>}
+              {product.displayInBestSelling && (
+                <span className="bestseller-badge">BESTSELLER</span>
+              )}
             </div>
           </div>
 
           <div className="card-category">
-            {typeof product.category === "object" ? product.category.name : "Unknown Category"}
-            {product.subcategory && <span className="subcategory"> ({product.subcategory})</span>}
+            {typeof product.category === "object"
+              ? product.category.name
+              : "Unknown Category"}
+            {product.subcategory && (
+              <span className="subcategory"> ({product.subcategory})</span>
+            )}
           </div>
 
           <div className="card-price">
@@ -138,7 +162,13 @@ function Products() {
 
           <div className="card-stock">
             <span
-              className={`stock-status ${product.stock === 0 ? "out-of-stock" : product.stock < 20 ? "low-stock" : ""}`}
+              className={`stock-status ${
+                product.stock === 0
+                  ? "out-of-stock"
+                  : product.stock < 20
+                  ? "low-stock"
+                  : ""
+              }`}
             >
               {product.stock === 0 ? "Out of Stock" : `${product.stock} in stock`}
             </span>
@@ -153,15 +183,19 @@ function Products() {
               <Edit size={16} />
               <span>Edit</span>
             </button>
-            <button className="delete-btn" onClick={() => handleDeleteProduct(product._id)} title="Delete product">
+            <button
+              className="delete-btn"
+              onClick={() => handleDeleteProduct(product._id)}
+              title="Delete product"
+            >
               <Trash2 size={16} />
               <span>Delete</span>
             </button>
           </div>
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className="products-container">
@@ -248,7 +282,7 @@ function Products() {
                   </thead>
                   <tbody>
                     {filteredProducts.map((product) => {
-                      const discount = calculateDiscount(product.price, product.salePrice)
+                      const discount = calculateDiscount(product.price, product.salePrice);
                       return (
                         <tr key={product._id}>
                           <td className="image-cell">
@@ -270,17 +304,22 @@ function Products() {
                               )}
                               <div className="product-badges">
                                 {product.onSale && <span className="sale-badge">SALE</span>}
-                                {product.displayInLatest && <span className="latest-badge">LATEST</span>}
-                                {product.displayInBestSelling && <span className="bestseller-badge">BESTSELLER</span>}
+                                {product.displayInLatest && (
+                                  <span className="latest-badge">LATEST</span>
+                                )}
+                                {product.displayInBestSelling && (
+                                  <span className="bestseller-badge">BESTSELLER</span>
+                                )}
                               </div>
                             </div>
                           </td>
                           <td className="category-cell">
                             <div className="category-info">
                               <span className="category-name">
-                                {typeof product.category === "object" ? product.category.name : "Unknown Category"}
+                                {typeof product.category === "object"
+                                  ? product.category.name
+                                  : "Unknown Category"}
                               </span>
-                              
                             </div>
                           </td>
                           <td className="price-cell">
@@ -292,7 +331,9 @@ function Products() {
                                 <div className="original-price">
                                   NRs.{product.price}/{product.unit}
                                 </div>
-                                {discount && <div className="discount-badge">{discount}% OFF</div>}
+                                {discount && (
+                                  <div className="discount-badge">{discount}% OFF</div>
+                                )}
                               </div>
                             ) : (
                               <div className="regular-price">
@@ -303,17 +344,25 @@ function Products() {
                           <td className="stock-cell">
                             <span
                               className={`stock-status ${
-                                product.stock === 0 ? "out-of-stock" : product.stock < 20 ? "low-stock" : ""
+                                product.stock === 0
+                                  ? "out-of-stock"
+                                  : product.stock < 20
+                                  ? "low-stock"
+                                  : ""
                               }`}
                             >
-                              {product.stock === 0 ? "Out of Stock" : `${product.stock} in stock`}
+                              {product.stock === 0
+                                ? "Out of Stock"
+                                : `${product.stock} in stock`}
                             </span>
                           </td>
                           <td className="actions-cell">
                             <div className="action-buttons">
                               <button
                                 className="edit-btn"
-                                onClick={() => navigate(`/admin/products/edit/${product._id}`)}
+                                onClick={() =>
+                                  navigate(`/admin/products/edit/${product._id}`)
+                                }
                                 title="Edit product"
                               >
                                 <Edit size={14} />
@@ -330,7 +379,7 @@ function Products() {
                             </div>
                           </td>
                         </tr>
-                      )
+                      );
                     })}
                   </tbody>
                 </table>
@@ -364,7 +413,7 @@ function Products() {
         </>
       )}
     </div>
-  )
+  );
 }
 
-export default Products
+export default Products;
