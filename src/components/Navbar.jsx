@@ -178,7 +178,7 @@ function Navbar() {
               <PhoneIcon size={20} className="grocery-phone-icon" />
               <div className="grocery-order-text">
                 <div className="grocery-order-label">ORDER AT</div>
-                <div className="grocery-order-number">01-4511000</div>
+                <div className="grocery-order-number">+977 9841241832</div>
               </div>
             </div>
           </nav>
