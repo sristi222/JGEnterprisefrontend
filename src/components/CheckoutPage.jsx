@@ -139,7 +139,7 @@ function CheckoutPage() {
     const encodedMessage = encodeURIComponent(message)
 
     // Replace with your WhatsApp number
-    const whatsappNumber = "9779843621988"
+    const whatsappNumber = "9779841241832"
 
     // Create WhatsApp URL
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`
