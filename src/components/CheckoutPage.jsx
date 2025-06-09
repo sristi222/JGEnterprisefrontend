@@ -164,7 +164,7 @@ function CheckoutPage() {
     const encodedMessage = encodeURIComponent(message)
 
     // Create SMS URL (works on mobile devices)
-    const smsUrl = `sms:+9779843621988?body=${encodedMessage}`
+    const smsUrl = `sms:+9779841241832?body=${encodedMessage}`
 
     // Open SMS app
     window.location.href = smsUrl
